@@ -11,8 +11,10 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
 const Dynamic = (() => {
-    var _template_templates, _template_observer, _template_templateInstances, _template_observerCB, _template_convertTemplate;
+    var _template_templates, _template_observer, _template_observerCB, _template_convertTemplate;
     console.warn("Dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of Dynamic.js, which is not suitable for production use.");
+    var mtScopes = [];
+    var instanceObjects = [];
     function E(name, type, value) {
         if (name === undefined)
             throw new Error("An error occured.");
@@ -78,12 +80,13 @@ const Dynamic = (() => {
     class mustache {
         constructor() {
         }
+        new() {
+        }
     }
     class template {
         constructor() {
             _template_templates.set(this, []);
             _template_observer.set(this, void 0);
-            _template_templateInstances.set(this, []);
             _template_observerCB.set(this, (resultList, observer) => {
                 for (let i = 0; i < resultList.length; i++)
                     for (let j = 0; j < resultList[i].addedNodes.length; j++) {
@@ -173,7 +176,7 @@ const Dynamic = (() => {
         }
         getTemplates() { return __classPrivateFieldGet(this, _template_templates, "f"); }
     }
-    _template_templates = new WeakMap(), _template_observer = new WeakMap(), _template_templateInstances = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
+    _template_templates = new WeakMap(), _template_observer = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
     class Dynamic {
         constructor(options) {
             console.warn("Creating new Dynamic instance.");
@@ -217,6 +220,15 @@ const Dynamic = (() => {
                 for (let i = 0; i < html.length; i++)
                     element.append(html[i]);
             return html;
+        }
+        e(s) {
+            let a = document.querySelectorAll(s);
+            if (!a.length)
+                return [];
+            if (a.length == 1 && s.match(/^.*#[^\s]*$/))
+                return a[0];
+            else
+                return Array.from(a);
         }
     }
     constantize(Dynamic);

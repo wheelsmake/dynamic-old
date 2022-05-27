@@ -15,6 +15,6 @@ dy.render(`
     </video>
     34asa`,document.getElementById("test"),undefined,true);
 dy.render(`
-    <template 654>
+    <template yhtfers>
         <div>6436eryuhred4y3yrht54y4h</div>
     </template>`,document.getElementById("test"),undefined,true);

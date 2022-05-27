@@ -1,16 +1,18 @@
-﻿const Dynamic = (()=>{
+﻿type mutations = Array<MutationRecord>;
+interface templateObject{
+    id :string;
+    content :HTMLElement | null;
+}
+type templateArray = templateObject[];
+interface instanceObject{
+    reference :HTMLElement;
+    slots :Record<string,string>;
+}
+type instanceArray = instanceObject[];
+const Dynamic = (()=>{
     console.warn("Dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of Dynamic.js, which is not suitable for production use.");
-    type mutations = Array<MutationRecord>;
-    interface templateInTemplatesArray{
-        id :string;
-        content :HTMLElement | null;
-    }
-    type templates = templateInTemplatesArray[];
-    interface templateInstance{
-        reference :HTMLElement;
-        slots :Record<string,string>;
-    }
-    type instance = templateInstance[];
+    var mtScopes :HTMLElement[] = [];
+    var instanceObjects :instanceArray = [];
     function E(name? :string, type? :string, value? :any) :never{
         if(name === undefined) throw new Error("An error occured.");
         else throw new Error(`Argument '${name}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
@@ -66,15 +68,23 @@
         Object.freeze(obj);
         for(let i = 0; i < Object.keys(obj).length; i++) if(typeof obj[Object.keys(obj)[i]] == "object") constantize(obj[Object.keys(obj)[i]]);
     }
-    class mustache{//todo:
+    class dataFlow{//todo:
+        #observer :MutationObserver;
         constructor(){
-            
+            this.#observer = new MutationObserver(this.#observerCB);
+            this.#observer.observe(document.body,{
+                childList: true,
+                subtree: true
+            });
         }
+        new(){
+            //todo:
+        }
+        #observerCB = (resultList :mutations, observer :MutationObserver)=>{}
     }
     class template{
-        #templates :templates = [];
+        #templates :templateArray = [];
         #observer :MutationObserver;
-        #templateInstances :instance = [];
         constructor(){
             this.#convertTemplate();
             this.#observer = new MutationObserver(this.#observerCB);
@@ -87,7 +97,7 @@
         register(element :HTMLElement, TUID? :string, remove? :Boolean) :string{
             if(TUID !== undefined && !checkTUID(TUID)) E("TUID", "string with some limitations", `${TUID}, read the documentation for help`);
             else if(TUID === undefined) TUID = generateTUID();
-            var tem :templateInTemplatesArray = {
+            var tem :templateObject = {
                 id: TUID,
                 content: null
             };
@@ -169,11 +179,11 @@
     }
     class Dynamic{
         template :object;
-        mustache :object;
+        dataFlow :object;
         constructor(options? :object){
             console.warn("Creating new Dynamic instance.");
             this.template = new template();
-            this.mustache = new mustache();
+            this.dataFlow = new dataFlow();
             if(options){
                 console.log(options);
                 //todo:
@@ -196,6 +206,12 @@
             else if(insertAfter === false) for(let i = 0; i < html.length; i++) parent.insertBefore(html[i], element);
             else for(let i = 0; i < html.length; i++) element.append(html[i]);
             return html;
+        }
+        e(s :string) :Node[] | Node{
+            let a :NodeList = document.querySelectorAll(s);
+            if(!a.length) return [];
+            if(a.length == 1 && s.match(/^.*#[^\s]*$/)) return a[0];
+            else return Array.from(a);
         }
     }
     constantize(Dynamic);
