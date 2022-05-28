@@ -11,7 +11,7 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
 const Dynamic = (() => {
-    var _template_templates, _template_observer, _template_observerCB, _template_convertTemplate;
+    var _dataFlow_observer, _dataFlow_observerCB, _template_templates, _template_observer, _template_observerCB, _template_convertTemplate;
     console.warn("Dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of Dynamic.js, which is not suitable for production use.");
     var mtScopes = [];
     var instanceObjects = [];
@@ -67,8 +67,8 @@ const Dynamic = (() => {
         return isValid;
     }
     function generateTUID() {
-        var s = [...randoma2z029(12)];
-        s[8] = "-";
+        var s = [...randoma2z029(29)];
+        s[11] = "-";
         return s.join("");
     }
     function constantize(obj) {
@@ -77,12 +77,20 @@ const Dynamic = (() => {
             if (typeof obj[Object.keys(obj)[i]] == "object")
                 constantize(obj[Object.keys(obj)[i]]);
     }
-    class mustache {
+    class dataFlow {
         constructor() {
+            _dataFlow_observer.set(this, void 0);
+            _dataFlow_observerCB.set(this, (resultList, observer) => { });
+            __classPrivateFieldSet(this, _dataFlow_observer, new MutationObserver(__classPrivateFieldGet(this, _dataFlow_observerCB, "f")), "f");
+            __classPrivateFieldGet(this, _dataFlow_observer, "f").observe(document.body, {
+                childList: true,
+                subtree: true
+            });
         }
         new() {
         }
     }
+    _dataFlow_observer = new WeakMap(), _dataFlow_observerCB = new WeakMap();
     class template {
         constructor() {
             _template_templates.set(this, []);
@@ -181,7 +189,7 @@ const Dynamic = (() => {
         constructor(options) {
             console.warn("Creating new Dynamic instance.");
             this.template = new template();
-            this.mustache = new mustache();
+            this.dataFlow = new dataFlow();
             if (options) {
                 console.log(options);
             }

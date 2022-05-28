@@ -1,7 +1,7 @@
 # dynamic
 一个简单的前端库（弱框架），用于创建动态网页。
 
-# 为什么开发 dynamic
+# 开发 dynamic 的背景
 
 dynamic 对标市面上的 JavaScript 框架（下简：框架）。在我看来，这些框架存在以下优点：
 
@@ -32,7 +32,11 @@ dynamic 在付出抛弃一些优点的代价后，做到避免了以下缺点：
 
 总之：其意义在于在前端开发高度框架化的今天探究一种无框架（弱框架）的编程方式，但同时又最大限度地保留框架带来的好处。
 
-dynamic 实例在创建时**不会主动接管任何 DOM 元素**，也**不会生成 vDOM**。dynamic 默认接管由其模板创建的实例。
+## 注意事项
+
+dynamic 实例在创建时**不会主动接管任何 DOM 元素**，也**不会生成 vDOM**。
+
+dynamic 接管由其模板创建的实例、由其 `render()` 直接渲染方法生成的 DOM 和 `dy.dataFlow.new()` 声明的元素。
 
 - 可以指定 dynamic 接管某个元素。接管后任何插入变量将可用。未接管前 dynamic 不会修改 HTML 中的任何东西。
 - 因此仅在需要不同配置时有创建多个 dynamic 实例的需求。
@@ -45,9 +49,9 @@ dynamic 实例在创建时**不会主动接管任何 DOM 元素**，也**不会�
 const dy = new Dynamic(options? :object);
 ```
 
-|   参数    |              描述              |
-| :-------: | :----------------------------: |
-| `options` | 用于更改某些行为，详情请见下文 |
+|   参数    |                      描述                       |
+| :-------: | :---------------------------------------------: |
+| `options` | 用于更改某些行为，详情请见[实例配置](#实例配置) |
 
 对一般的页面来说，创建一个实例即可。
 
@@ -71,7 +75,7 @@ dynamic 会监听DOM变化。运行时释放 `<template>` 元素也会被 dyanmi
 
 #### 从 `<template>` 元素注册的弊端
 
-最主要的弊端是 dynamic 缺少对 shadow DOM 的支持，所以所有 `<temnplate>` 元素转换为模板后都会**丢失其 shadow DOM 状态**，其内容被一个顶级 `<div>` 元素包裹。这是写死在 dynamic 里的逻辑。
+最主要的弊端是 dynamic 缺少对 shadow DOM 的支持，所以所有 `<template>` 元素转换为模板后都会**丢失其 shadow DOM 状态**，其内容被一个顶级 `<div>` 元素包裹。这是写死在 dynamic 里的逻辑。
 
 ### 从命令
 
@@ -87,7 +91,7 @@ dy.template.register(element :HTMLElement, TUID? :string, remove? :Boolean) :str
 
 使用 `TUID` 参数自定义 `tuID` 时，请注意它必须是一个长度大于等于 3 个字符的字符串，只能包含小写字母、数字或连字符 `-`，且在不是开头和结尾的字符中有至少一个连字符。
 
-此规范的目的是能将每一个 `tuID` 都作为一个有效的自定义元素（Web Component）使用。
+此规范的目的是能将每一个 `tuID` 都作为一个有效的自定义元素（[Web Component](https://developer.mozilla.org/zh-CN/docs/Web/Web_Components)）使用。
 
 以下给出正确和错误示例：
 
@@ -99,7 +103,6 @@ dy.template.register(element :HTMLElement, TUID? :string, remove? :Boolean) :str
 "ewr-3a" //正确
 
 "q" //错误，字符数太少
-true //错误，不是字符串类型
 "-adadad" //错误，在开头出现连字符
 "asdfg" //错误，无连字符
 
@@ -116,7 +119,7 @@ dynamic 支持从单个文件注册模板。详情请见下文「单文件导入
 
 `tuID` 是 dynamic 内部识别模板的唯一方式。
 
-当 dynamic 自动生成 `tuID` 时，其长度总是为12字符，并且第9个字符总为连字符 `-`，因为 dynamic 的开发者是 LJM**129**14。总共可能生成131,621,703,842,267,136个 `tuID`，基本不用担心碰撞。
+当 dynamic 自动生成 `tuID` 时，其长度总是为29字符，并且第12个字符总为连字符 `-`，因为 dynamic 的开发者是 LJM**129**14。总共可能生成 4.2277e+37 个 `tuID`，基本不用担心碰撞，并有[碰撞检测](#enableAntiClash)功能（需在 `options` 参数中设置）。
 
 ## 使用一个模板（TODO）
 
@@ -302,7 +305,23 @@ dy.template.getInstance(tuID :string) :object[];
 |   `slots`   |      该实例使用的变量，如未赋值则为缺省值或 `undefined`      |
 | `slot_name` |                            变量名                            |
 
-# 插入变量（TODO）
+# 插入数据（TODO）
+
+声明 dynamic 应查看某元素及其后代的插入标识：
+
+```typescript
+dy.dataFlow.new(element :HTMLElement) :void;
+```
+
+|   参数    |     描述     |
+| :-------: | :----------: |
+| `element` | 应查看的元素 |
+
+该元素又称**作用域**（或 dynamic 作用域）。声明后，dynamic 才会识别其中的所有有效数据节点。
+
+## dynamic 的数据流原理
+
+
 
 # 其他工具
 
@@ -340,9 +359,59 @@ dy.repeat(item :any, count :number) :any[];
 | `item`  |    填充对象     |
 | `count` | 次数，必须大于0 |
 
-该方法是 `Array.fill()` 的更易用版 polyfill。
+该方法是 `Array.fill()` 的易用版。
 
 该方法返回一个 Array。
+
+## 获取元素
+
+是 `document.queryselectorAll()` 的易用版。
+
+```typescript
+dy.e(s :string) :Node[] | Node;
+```
+
+| 参数 |    描述    |
+| :--: | :--------: |
+| `s`  | css 选择器 |
+
+仅当传入选择器的最终选择器为 ID 选择器（即 `#` ）且获取到元素时返回 `Node` 类型单个元素，否则返回  `Node[]` 类型。
+
+# 实例配置
+
+在创建实例时传入配置。
+
+```typescript
+const dy = new Dynamic(options);
+```
+
+下面是对 `options` 对象的有效属性的描述，注意所有属性都是**可选的**。无效的属性将被 dynamic 忽略。
+
+|               有效属性                |     类型      |             描述             |
+| :-----------------------------------: | :-----------: | :--------------------------: |
+|              `rootScope`              | `HTMLElement` | 创建实例时顺便指定一个作用域 |
+| [`enableAntiClash`](#enableAntiClash) |   `Boolean`   |       是否开启碰撞检测       |
+|            `clashHandler`             |  `Function`   |         碰撞处理方法         |
+
+## enableAntiClash
+
+任意两个模板的 `tuID` 和相连的数据节点的 `dfID` 均不应该重复，并且由于极低的碰撞概率，它们一般也不会重复。但对于拥有上百个模板和数据节点的大型程序来说，这貌似有可能，并且考虑到一些开发者愿意用性能换强迫症的开心，所以提供了碰撞检测功能。
+
+将 `enableAntiClash` 设为 `true` 即可打开。此时也必须设置 `clashHandler` 方法，调用参数如下：
+
+```typescript
+clashHandler(type :string, instance1 :object, instance2 :object) :string;
+```
+
+|    参数     |                    描述                    |
+| :---------: | :----------------------------------------: |
+|   `type`    | `tuID`：模板的碰撞；`dfID`：数据节点的碰撞 |
+| `instance1` |         碰撞的实例中创建较晚的那个         |
+| `instance2` |         碰撞的实例中创建较早的那个         |
+
+该方法期望的返回值是有效的 `tuID` 或 `dfID`。dynamic 仍会对 `tuID` 或 `dfID` 的有效性做检查，若无效，则抛出异常。
+
+碰撞检测会消耗一些性能，在每一次创建新实例时进行 ID 检查。
 
 # 补充说明
 

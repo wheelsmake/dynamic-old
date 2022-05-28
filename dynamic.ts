@@ -1,4 +1,8 @@
-﻿type mutations = Array<MutationRecord>;
+﻿/* dynamic.js
+ * ©2022 LJM12914. https://github.com/openink/dynamic
+ * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
+*/
+type mutations = Array<MutationRecord>;
 interface templateObject{
     id :string;
     content :HTMLElement | null;
@@ -10,7 +14,7 @@ interface instanceObject{
 }
 type instanceArray = instanceObject[];
 const Dynamic = (()=>{
-    console.warn("Dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of Dynamic.js, which is not suitable for production use.");
+    console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of Dynamic.js, which is not suitable for production use.");
     var mtScopes :HTMLElement[] = [];
     var instanceObjects :instanceArray = [];
     function E(name? :string, type? :string, value? :any) :never{
@@ -60,8 +64,8 @@ const Dynamic = (()=>{
     }
     //生成id，abcdefgh-ijk
     function generateTUID() :string{
-        var s = [...randoma2z029(12)];
-        s[8] = "-";
+        var s = [...randoma2z029(29)];
+        s[11] = "-";
         return s.join("");
     }
     function constantize(obj :Record<string,any>) :void{
@@ -180,14 +184,18 @@ const Dynamic = (()=>{
     class Dynamic{
         template :object;
         dataFlow :object;
-        constructor(options? :object){
+        constructor(options? :Record<string,any>){
             console.warn("Creating new Dynamic instance.");
-            this.template = new template();
-            this.dataFlow = new dataFlow();
             if(options){
                 console.log(options);
                 //todo:
+                if(options.enableAntiClash === true){
+                    //todo:防碰撞
+                }
+
             }
+            this.template = new template();
+            this.dataFlow = new dataFlow();
         }
         repeat(item :any, count :number) :any[]{return repeat(item, count);}
         render(HTML :string | HTMLElement | HTMLCollection | Node | NodeList | Node[], element :HTMLElement, insertAfter? :Boolean, append? :Boolean) :Node[]{
