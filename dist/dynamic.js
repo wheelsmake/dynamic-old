@@ -324,19 +324,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const w1ndow = window;
-w1ndow.Dynamic = (() => {
+const Dynamic = (() => {
     console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of dynamic.js, which is not suitable for production use.");
     class Dynamic {
         constructor(options) {
+            this.options = undefined;
             console.warn("Creating new Dynamic instance.");
-            if (options) {
-                console.log(options);
-                if (options.enableAntiClash === true) {
-                }
-                if (options.rootScope === true) {
-                }
-            }
+            if (options)
+                this.options = options;
             this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](this);
             this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](this);
         }
@@ -390,6 +385,8 @@ w1ndow.Dynamic = (() => {
     _utils__WEBPACK_IMPORTED_MODULE_2__["default"].constantize(Dynamic);
     return Dynamic;
 })();
+const w1ndow = window;
+w1ndow.Dynamic = Dynamic;
 
 })();
 

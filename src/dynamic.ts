@@ -6,24 +6,15 @@ type anyObject = Record<string, any>;
 import template from "./template";
 import dataFlow from "./dataFlow";
 import utils from "./utils";
-const w1ndow = window as any;
-w1ndow.Dynamic = (()=>{
+const Dynamic = (()=>{
     console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of dynamic.js, which is not suitable for production use.");
     class Dynamic{
         template :object;
         dataFlow :object;
+        options :object | undefined = undefined;
         constructor(options? :anyObject){
             console.warn("Creating new Dynamic instance.");
-            if(options){
-                console.log(options);
-                //todo:
-                if(options.enableAntiClash === true){
-                    //todo:防碰撞
-                }
-                if(options.rootScope === true){
-                    
-                }
-            }
+            if(options) this.options = options;
             this.template = new template(this);
             this.dataFlow = new dataFlow(this);
         }
@@ -52,8 +43,9 @@ w1ndow.Dynamic = (()=>{
             if(a.length == 1 && s.match(/^.*#[^\s]*$/)) return a[0];
             else return Array.from(a);
         }
-        
     }
     utils.constantize(Dynamic);
     return Dynamic;
 })();
+const w1ndow = window as any;
+w1ndow.Dynamic = Dynamic;
