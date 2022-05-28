@@ -1,20 +1,18 @@
 ﻿"use strict";
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
 const Dynamic = (() => {
-    var _dataFlow_observer, _dataFlow_observerCB, _template_templates, _template_observer, _template_observerCB, _template_convertTemplate;
-    console.warn("Dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of Dynamic.js, which is not suitable for production use.");
-    var mtScopes = [];
-    var instanceObjects = [];
+    var _dataFlow_dynamic, _dataFlow_observer, _dataFlow_observerCB, _template_dynamic, _template_templates, _template_observer, _template_observerCB, _template_convertTemplate, _Dynamic_dfScopes, _Dynamic_instances;
+    console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of dynamic.js, which is not suitable for production use.");
     function E(name, type, value) {
         if (name === undefined)
             throw new Error("An error occured.");
@@ -78,9 +76,11 @@ const Dynamic = (() => {
                 constantize(obj[Object.keys(obj)[i]]);
     }
     class dataFlow {
-        constructor() {
+        constructor(dynamic) {
+            _dataFlow_dynamic.set(this, void 0);
             _dataFlow_observer.set(this, void 0);
             _dataFlow_observerCB.set(this, (resultList, observer) => { });
+            __classPrivateFieldSet(this, _dataFlow_dynamic, dynamic, "f");
             __classPrivateFieldSet(this, _dataFlow_observer, new MutationObserver(__classPrivateFieldGet(this, _dataFlow_observerCB, "f")), "f");
             __classPrivateFieldGet(this, _dataFlow_observer, "f").observe(document.body, {
                 childList: true,
@@ -90,9 +90,10 @@ const Dynamic = (() => {
         new() {
         }
     }
-    _dataFlow_observer = new WeakMap(), _dataFlow_observerCB = new WeakMap();
+    _dataFlow_dynamic = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow_observerCB = new WeakMap();
     class template {
-        constructor() {
+        constructor(dynamic) {
+            _template_dynamic.set(this, void 0);
             _template_templates.set(this, []);
             _template_observer.set(this, void 0);
             _template_observerCB.set(this, (resultList, observer) => {
@@ -122,6 +123,7 @@ const Dynamic = (() => {
                     this.register(template_input, tuid, template_input.getAttribute("dynamic") !== null);
                 }
             });
+            __classPrivateFieldSet(this, _template_dynamic, dynamic, "f");
             __classPrivateFieldGet(this, _template_convertTemplate, "f").call(this);
             __classPrivateFieldSet(this, _template_observer, new MutationObserver(__classPrivateFieldGet(this, _template_observerCB, "f")), "f");
             __classPrivateFieldGet(this, _template_observer, "f").observe(document.body, {
@@ -184,18 +186,26 @@ const Dynamic = (() => {
         }
         getTemplates() { return __classPrivateFieldGet(this, _template_templates, "f"); }
     }
-    _template_templates = new WeakMap(), _template_observer = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
+    _template_dynamic = new WeakMap(), _template_templates = new WeakMap(), _template_observer = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
     class Dynamic {
         constructor(options) {
+            _Dynamic_dfScopes.set(this, []);
+            _Dynamic_instances.set(this, []);
             console.warn("Creating new Dynamic instance.");
-            this.template = new template();
-            this.dataFlow = new dataFlow();
             if (options) {
                 console.log(options);
+                if (options.enableAntiClash === true) {
+                }
+                if (options.rootScope === true) {
+                }
             }
+            this.template = new template(this);
+            this.dataFlow = new dataFlow(this);
         }
         repeat(item, count) { return repeat(item, count); }
         render(HTML, element, insertAfter, append) {
+            if (element.parentElement === null)
+                EE("cannot render by '<html>' element, since it's root of document.");
             var html = [];
             if (typeof HTML == "string")
                 html = toHTML(HTML);
@@ -239,7 +249,9 @@ const Dynamic = (() => {
                 return Array.from(a);
         }
     }
+    _Dynamic_dfScopes = new WeakMap(), _Dynamic_instances = new WeakMap();
     constantize(Dynamic);
     return Dynamic;
+    return "Made by LJM12914. Since 2022.";
 })();
 //# sourceMappingURL=dynamic.js.map

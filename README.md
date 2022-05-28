@@ -80,7 +80,7 @@ dynamic 会监听DOM变化。运行时释放 `<template>` 元素也会被 dyanmi
 ### 从命令
 
 ```typescript
-dy.template.register(element :HTMLElement, TUID? :string, remove? :Boolean) :string;
+dy.template.register(element :HTMLElement, TUID? :string, remove? :boolean) :string;
 ```
 
 |   参数    |              描述              |
@@ -126,7 +126,7 @@ dynamic 支持从单个文件注册模板。详情请见下文「单文件导入
 在文档的指定位置插入模板：
 
 ```typescript
-dy.template.render(tuID :string, element :HTMLElement, slots? :Record<string,any>, removeOuterElement? :Boolean, insertAfter? :Boolean, append? :Boolean) :HTMLElement;
+dy.template.render(tuID :string, element :HTMLElement, slots? :Record<string,any>, removeOuterElement? :boolean, insertAfter? :boolean, append? :boolean) :HTMLElement;
 ```
 
 |         参数         |                             描述                             |
@@ -241,6 +241,8 @@ dy.template.getTemplates() :object[];
 
 原生 API 中，`<slot>` 元素是用于插入变量的占位符，但其兼容性弱。在 dynamic 中，可以通过 `<slot>` 在模板中插入变量，通过 dynamic 的 polyfill，其在功能与原生几乎相同的同时增强了兼容。
 
+- 模板变量不是数据节点，与[插入数据](#插入数据)中的
+
 下面演示一个例子：
 
 ```html
@@ -330,7 +332,7 @@ dy.dataFlow.new(element :HTMLElement) :void;
 向文档中渲染任意HTML。
 
 ```typescript
-dy.render(HTML :string | HTMLElement | HTMLCollection | Node | NodeList | Node[], element :HTMLElement, insertAfter? :Boolean, append? :Boolean) :Node[];
+dy.render(HTML :string | HTMLElement | HTMLCollection | Node | NodeList | Node[], element :HTMLElement, insertAfter? :boolean, append? :boolean) :Node[];
 ```
 
 |     参数      |                             描述                             |
@@ -365,7 +367,7 @@ dy.repeat(item :any, count :number) :any[];
 
 ## 获取元素
 
-是 `document.queryselectorAll()` 的易用版。
+是 `document.querySelectorAll()` 的易用版。
 
 ```typescript
 dy.e(s :string) :Node[] | Node;
@@ -390,8 +392,9 @@ const dy = new Dynamic(options);
 |               有效属性                |     类型      |             描述             |
 | :-----------------------------------: | :-----------: | :--------------------------: |
 |              `rootScope`              | `HTMLElement` | 创建实例时顺便指定一个作用域 |
-| [`enableAntiClash`](#enableAntiClash) |   `Boolean`   |       是否开启碰撞检测       |
+| [`enableAntiClash`](#enableAntiClash) |   `boolean`   |       是否开启碰撞检测       |
 |            `clashHandler`             |  `Function`   |         碰撞处理方法         |
+|                                       |               |                              |
 
 ## enableAntiClash
 

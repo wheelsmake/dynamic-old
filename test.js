@@ -1,5 +1,5 @@
 ﻿var dy = new Dynamic({
-    rewwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww:24
+    op:24
 });
 /*import("./ad.js").then((r)=>{
     r.default.a();

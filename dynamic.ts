@@ -2,21 +2,23 @@
  * ©2022 LJM12914. https://github.com/openink/dynamic
  * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
 */
-type mutations = Array<MutationRecord>;
+type anyObject = Record<string, any>;
 interface templateObject{
     id :string;
     content :HTMLElement | null;
 }
-type templateArray = templateObject[];
 interface instanceObject{
     reference :HTMLElement;
-    slots :Record<string,string>;
+    slots :anyObject;
 }
-type instanceArray = instanceObject[];
+interface dfScope{
+    id :string;
+    element :HTMLElement;
+    notLinkWith? :HTMLElement[];
+    notLinkBy? :HTMLElement[];
+}
 const Dynamic = (()=>{
-    console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of Dynamic.js, which is not suitable for production use.");
-    var mtScopes :HTMLElement[] = [];
-    var instanceObjects :instanceArray = [];
+    console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of dynamic.js, which is not suitable for production use.");
     function E(name? :string, type? :string, value? :any) :never{
         if(name === undefined) throw new Error("An error occured.");
         else throw new Error(`Argument '${name}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
@@ -68,13 +70,16 @@ const Dynamic = (()=>{
         s[11] = "-";
         return s.join("");
     }
-    function constantize(obj :Record<string,any>) :void{
+    function constantize(obj :anyObject) :void{
         Object.freeze(obj);
         for(let i = 0; i < Object.keys(obj).length; i++) if(typeof obj[Object.keys(obj)[i]] == "object") constantize(obj[Object.keys(obj)[i]]);
     }
     class dataFlow{//todo:
+        #dynamic :anyObject;
+        #dfScopes :dfScope[] = [];
         #observer :MutationObserver;
-        constructor(){
+        constructor(dynamic :anyObject){
+            this.#dynamic = dynamic;
             this.#observer = new MutationObserver(this.#observerCB);
             this.#observer.observe(document.body,{
                 childList: true,
@@ -84,12 +89,15 @@ const Dynamic = (()=>{
         new(){
             //todo:
         }
-        #observerCB = (resultList :mutations, observer :MutationObserver)=>{}
+        #observerCB = (resultList :MutationRecord[], observer :MutationObserver)=>{}
     }
     class template{
-        #templates :templateArray = [];
+        #dynamic :anyObject;
+        #templates :templateObject[] = [];
+        #instances :instanceObject[] = [];
         #observer :MutationObserver;
-        constructor(){
+        constructor(dynamic :anyObject){
+            this.#dynamic = dynamic;
             this.#convertTemplate();
             this.#observer = new MutationObserver(this.#observerCB);
             this.#observer.observe(document.body,{
@@ -115,7 +123,8 @@ const Dynamic = (()=>{
             if(remove === true) element.remove();
             return TUID;
         }
-        render(tuID :string, element :HTMLElement, slots? :Record<string,any>, removeOuterElement? :Boolean, insertAfter? :Boolean, append? :Boolean) /*:HTMLElement*/{
+        render(tuID :string, element :HTMLElement, slots? :anyObject, removeOuterElement? :Boolean, insertAfter? :Boolean, append? :Boolean) /*:HTMLElement*/{
+
             //todo:渲染模板
         }
         update(tuID :string, element :HTMLElement) /*:HTMLElement*/{
@@ -123,7 +132,7 @@ const Dynamic = (()=>{
         }
         delete(tuID :string) :HTMLElement | null{
             for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID){
-                let content = this.#templates[i].content
+                let content = this.#templates[i].content;
                 this.#templates.splice(i, 1);
                 return content;
             }
@@ -137,24 +146,21 @@ const Dynamic = (()=>{
             for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].content === element) return this.#templates[i].id as string;
             return null;
         }
-        getInstance(tuID :string) :object[]{
+        getInstance(tuID :string) /*:instanceObject | instanceObject[]*/{
             //todo:传入tuid，获取已实例化的模板列表
-            return [{
-                reference: "",
+            /*return [{
+                reference: ,
                 slots:[
 
                 ]
-            }];
+            }];*/
         }
-        getTemplates() :object{return this.#templates;} //获取所有模板
+        getTemplates() :templateObject[]{return this.#templates;} //获取所有模板
         //调试用方法，不要一直开着！
         /**//*
-        __convertTemplate__ = (template_input? :HTMLTemplateElement) :void=>{
-            this.convertTemplate(template_input);
-        }
         /**/
         //observer回调方法
-        #observerCB = (resultList :mutations, observer :MutationObserver)=>{
+        #observerCB = (resultList :MutationRecord[], observer :MutationObserver)=>{
             for(let i = 0; i < resultList.length; i++) for(let j = 0; j < resultList[i].addedNodes.length; j++){
                 const ele = resultList[i].addedNodes[j] as HTMLElement;
                 //template增量注册
@@ -184,7 +190,7 @@ const Dynamic = (()=>{
     class Dynamic{
         template :object;
         dataFlow :object;
-        constructor(options? :Record<string,any>){
+        constructor(options? :anyObject){
             console.warn("Creating new Dynamic instance.");
             if(options){
                 console.log(options);
@@ -192,19 +198,22 @@ const Dynamic = (()=>{
                 if(options.enableAntiClash === true){
                     //todo:防碰撞
                 }
-
+                if(options.rootScope === true){
+                    
+                }
             }
-            this.template = new template();
-            this.dataFlow = new dataFlow();
+            this.template = new template(this);
+            this.dataFlow = new dataFlow(this);
         }
         repeat(item :any, count :number) :any[]{return repeat(item, count);}
         render(HTML :string | HTMLElement | HTMLCollection | Node | NodeList | Node[], element :HTMLElement, insertAfter? :Boolean, append? :Boolean) :Node[]{
+            if(element.parentElement === null) EE("cannot render by '<html>' element, since it's root of document.");
             var html :Node[] = [];
             if(typeof HTML == "string") html = toHTML(HTML);
             else if(HTML instanceof HTMLElement || HTML instanceof Node) html[0] = HTML.cloneNode(true);
             else if(HTML instanceof HTMLCollection || HTML instanceof NodeList) for(let i = 0; i < HTML.length; i++) html[i] = HTML.item(i)!.cloneNode(true);
             else html = HTML;
-            const parent = element.parentElement!, Rhtml = [...html].reverse();
+            const parent = element.parentElement, Rhtml = [...html].reverse();
             if(append === true) for(let i = 0; i < html.length; i++) element.append(html[i]);
             else if(append === false) for(let i = 0; i < Rhtml.length; i++) element.prepend(Rhtml[i]);
             else if(insertAfter === true){
@@ -221,7 +230,9 @@ const Dynamic = (()=>{
             if(a.length == 1 && s.match(/^.*#[^\s]*$/)) return a[0];
             else return Array.from(a);
         }
+        
     }
     constantize(Dynamic);
     return Dynamic;
+    return "Made by LJM12914. Since 2022.";
 })();
