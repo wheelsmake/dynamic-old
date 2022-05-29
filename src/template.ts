@@ -40,9 +40,19 @@ export default class template{
         if(remove === true) element.remove();
         return TUID;
     }
+    //超级核心方法。
     render(tuID :string, element :HTMLElement, slots? :anyObject, removeOuterElement? :Boolean, insertAfter? :Boolean, append? :Boolean) /*:HTMLElement*/{
-
-        //todo:渲染模板
+        for(let i = 0; i < this.#templates.length; i++){
+            if(this.#templates[i].id === tuID){
+//todo:渲染模板
+                const id = this.#templates[i].id, content = this.#templates[i].content;
+                var HTML;
+                if(removeOuterElement === true){
+                    
+                }
+            }
+        }
+        utils.E("tuID", "valid ID that exists", tuID);
     }
     update(tuID :string, element :HTMLElement) /*:HTMLElement*/{
         //todo:提供tuid，更新模板内容
