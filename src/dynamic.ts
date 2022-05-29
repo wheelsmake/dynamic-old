@@ -11,10 +11,11 @@ const Dynamic = (()=>{
     class Dynamic{
         template :object;
         dataFlow :object;
-        options :object | undefined = undefined;
+        options :anyObject | undefined = undefined;
         constructor(options? :anyObject){
             console.warn("Creating new Dynamic instance.");
-            if(options) this.options = options;
+            console.log(options);
+            this.options = options;
             this.template = new template(this);
             this.dataFlow = new dataFlow(this);
         }

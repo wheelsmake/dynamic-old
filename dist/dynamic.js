@@ -330,6 +330,7 @@ const Dynamic = (() => {
         constructor(options) {
             this.options = undefined;
             console.warn("Creating new Dynamic instance.");
+            console.log("");
             if (options)
                 this.options = options;
             this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](this);
