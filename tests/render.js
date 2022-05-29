@@ -1,9 +1,4 @@
-﻿var dy = new Dynamic({
-    op:24
-});
-/*import("./ad.js").then((r)=>{
-    r.default.a();
-});*/
+﻿var dy = new Dynamic();
 dy.render(`
     <div id='sa'>
         sasasas

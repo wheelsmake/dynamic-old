@@ -41,7 +41,7 @@ const Dynamic = (()=>{
         e(s :string) :Node[] | Node{
             let a :NodeList = document.querySelectorAll(s);
             if(!a.length) return [];
-            if(a.length == 1 && s.match(/^.*#[^\s]*$/)) return a[0];
+            if(a.length == 1 && s.match(/^.*#[^\s]*$/)) return a[0];//note:当一个页面存在相同ID元素时不会走这里，而会返回数组，因为说好了是querySelectorAll了并且本来就不应该有重复ID
             else return Array.from(a);
         }
     }

@@ -1,4 +1,4 @@
-type anyObject = Record<string, any>;
+﻿type anyObject = Record<string, any>;
 interface dfScope{
     id :string;
     element :HTMLElement;

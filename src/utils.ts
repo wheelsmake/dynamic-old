@@ -1,4 +1,4 @@
-type anyObject = Record<string, any>;
+﻿type anyObject = Record<string, any>;
 function E(name? :string, type? :string, value? :any) :never{
     if(name === undefined) throw new Error("An error occured.");
     else throw new Error(`Argument '${name}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);

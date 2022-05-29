@@ -1,4 +1,4 @@
-type anyObject = Record<string, any>;
+﻿type anyObject = Record<string, any>;
 interface templateObject{
     id :string;
     content :HTMLElement | null;
