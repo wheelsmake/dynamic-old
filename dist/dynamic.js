@@ -12,6 +12,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ dataFlow)
 /* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.ts");
 var __classPrivateFieldSet = (undefined && undefined.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -24,6 +25,7 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _dataFlow_dynamic, _dataFlow_dfScopes, _dataFlow_observer, _dataFlow_observerCB;
+
 class dataFlow {
     constructor(dynamic) {
         _dataFlow_dynamic.set(this, void 0);
@@ -39,6 +41,9 @@ class dataFlow {
         });
     }
     new() {
+    }
+    generateDFID() {
+        return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateDFID();
     }
 }
 _dataFlow_dynamic = new WeakMap(), _dataFlow_dfScopes = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow_observerCB = new WeakMap();
@@ -68,7 +73,7 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _template_dynamic, _template_templates, _template_instances, _template_observer, _template_observerCB, _template_convertTemplate;
+var _template_dynamic, _template_templates, _template_instances, _template_observer, _template_test, _template_observerCB, _template_convertTemplate;
 
 class template {
     constructor(dynamic) {
@@ -76,6 +81,7 @@ class template {
         _template_templates.set(this, []);
         _template_instances.set(this, []);
         _template_observer.set(this, void 0);
+        _template_test.set(this, "fdsaaaaaaaaaa");
         _template_observerCB.set(this, (resultList, observer) => {
             for (let i = 0; i < resultList.length; i++)
                 for (let j = 0; j < resultList[i].addedNodes.length; j++) {
@@ -92,7 +98,11 @@ class template {
                         var tuid = templates[i].getAttribute("tuid");
                         if (!tuid || !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(tuid))
                             tuid = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
-                        this.register(templates[i], tuid, templates[i].getAttribute("dynamic") !== null);
+                        this.register({
+                            element: templates[i],
+                            TUID: tuid,
+                            remove: templates[i].getAttribute("dynamic") !== null
+                        });
                     }
                 }
             }
@@ -100,7 +110,11 @@ class template {
                 var tuid = template_input.getAttribute("tuid");
                 if (!tuid || !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(tuid))
                     tuid = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
-                this.register(template_input, tuid, template_input.getAttribute("dynamic") !== null);
+                this.register({
+                    element: template_input,
+                    TUID: tuid,
+                    remove: template_input.getAttribute("dynamic") !== null
+                });
             }
         });
         __classPrivateFieldSet(this, _template_dynamic, dynamic, "f");
@@ -111,31 +125,44 @@ class template {
             subtree: true
         });
     }
-    register(element, TUID, remove) {
-        if (TUID !== undefined && !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(TUID))
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("TUID", "string with some limitations", `${TUID}, read the documentation for help`);
-        else if (TUID === undefined)
-            TUID = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
+    register(args) {
+        if (args.TUID !== undefined && !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(args.TUID))
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("TUID", "string with some limitations", `${args.TUID}, read the documentation for help`);
+        else if (args.TUID === undefined)
+            args.TUID = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
         var tem = {
-            id: TUID,
+            id: args.TUID,
             content: null
         };
-        if (element instanceof HTMLTemplateElement) {
+        if (args.element instanceof HTMLTemplateElement) {
             var el = document.createElement("div");
-            for (let i = 0; i < element.content.childNodes.length; i++)
-                el.appendChild(element.content.childNodes[i].cloneNode(true));
+            for (let i = 0; i < args.element.content.childNodes.length; i++)
+                el.appendChild(args.element.content.childNodes[i].cloneNode(true));
             tem.content = el;
         }
         else
-            tem.content = element.cloneNode(true);
+            tem.content = args.element.cloneNode(true);
         __classPrivateFieldGet(this, _template_templates, "f").push(tem);
-        if (remove === true)
-            element.remove();
-        return TUID;
+        if (args.remove === true)
+            args.element.remove();
+        return args.TUID;
     }
-    render(tuID, element, slots, removeOuterElement, insertAfter, append) {
+    render(args) {
+        for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++) {
+            if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === args.tuID) {
+                const id = __classPrivateFieldGet(this, _template_templates, "f")[i].id, content = __classPrivateFieldGet(this, _template_templates, "f")[i].content;
+                var nodes = [];
+                if (args.removeOuterElement === true)
+                    nodes = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].getInnerNodes(content);
+                else
+                    nodes[0] = content.cloneNode(true);
+                return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].render(nodes, args.element, args.insertAfter, args.append, args.disableDF);
+            }
+        }
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("tuID", "valid ID that exists", args.tuID);
+        return null;
     }
-    update(tuID, element) {
+    update(args) {
     }
     delete(tuID) {
         for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
@@ -162,7 +189,7 @@ class template {
     }
     getTemplates() { return __classPrivateFieldGet(this, _template_templates, "f"); }
 }
-_template_dynamic = new WeakMap(), _template_templates = new WeakMap(), _template_instances = new WeakMap(), _template_observer = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
+_template_dynamic = new WeakMap(), _template_templates = new WeakMap(), _template_instances = new WeakMap(), _template_observer = new WeakMap(), _template_test = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
 
 
 /***/ }),
@@ -177,6 +204,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+var nodes = {};
 function E(name, type, value) {
     if (name === undefined)
         throw new Error("An error occured.");
@@ -198,6 +226,12 @@ function toHTMLString(HTML) {
     const ele = document.createElement("div");
     ele.appendChild(HTML);
     return ele.innerHTML;
+}
+function getInnerNodes(el) {
+    var nodes = [];
+    for (let i = 0; i < el.childNodes.length; i++)
+        nodes[i] = el.childNodes[i].cloneNode(true);
+    return nodes;
 }
 function repeat(item, count) {
     if (typeof count != "number" || count < 1)
@@ -229,9 +263,7 @@ function checkTUID(id) {
     return isValid;
 }
 function generateTUID() {
-    var s = [...randoma2z029(29)];
-    s[11] = "-";
-    return s.join("");
+    return `${randoma2z029(11)}-${randoma2z029(17)}`;
 }
 function constantize(obj) {
     Object.freeze(obj);
@@ -239,16 +271,59 @@ function constantize(obj) {
         if (typeof obj[Object.keys(obj)[i]] == "object")
             constantize(obj[Object.keys(obj)[i]]);
 }
+function render(HTML, element, insertAfter, append, disableDF) {
+    if (element.parentElement === null)
+        EE("cannot render by '<html>' element, since it's root of document.");
+    var html = [];
+    if (typeof HTML == "string")
+        html = toHTML(HTML);
+    else if (HTML instanceof HTMLElement || HTML instanceof Node)
+        html[0] = HTML.cloneNode(true);
+    else if (HTML instanceof HTMLCollection || HTML instanceof NodeList)
+        for (let i = 0; i < HTML.length; i++)
+            html[i] = HTML.item(i).cloneNode(true);
+    else
+        html = HTML;
+    const Rhtml = [...html].reverse(), parent = element.parentElement;
+    if (append === true)
+        for (let i = 0; i < html.length; i++)
+            element.append(html[i]);
+    else if (append === false)
+        for (let i = 0; i < Rhtml.length; i++)
+            element.prepend(Rhtml[i]);
+    else if (insertAfter === true) {
+        if (!element.nextSibling)
+            for (let i = 0; i < Rhtml.length; i++)
+                parent.append(Rhtml[i]);
+        else
+            for (let i = 0; i < Rhtml.length; i++)
+                parent.insertBefore(Rhtml[i], element.nextSibling);
+    }
+    else if (insertAfter === false)
+        for (let i = 0; i < html.length; i++)
+            parent.insertBefore(html[i], element);
+    else
+        for (let i = 0; i < html.length; i++)
+            element.append(html[i]);
+    return html;
+}
+function generateDFID() {
+    return `dfid-${randoma2z029(24)}`;
+}
 var utils = {
+    nodes: nodes,
     E: E,
     EE: EE,
     toHTML: toHTML,
     toHTMLString: toHTMLString,
+    getInnerNodes: getInnerNodes,
     repeat: repeat,
     randoma2z029: randoma2z029,
     checkTUID: checkTUID,
     generateTUID: generateTUID,
-    constantize: constantize
+    constantize: constantize,
+    render: render,
+    generateDFID: generateDFID
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (utils);
 
@@ -324,68 +399,31 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const Dynamic = (() => {
-    console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of dynamic.js, which is not suitable for production use.");
-    class Dynamic {
-        constructor(options) {
-            this.options = undefined;
-            console.warn("Creating new Dynamic instance.");
-            console.log("");
-            if (options)
-                this.options = options;
-            this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](this);
-            this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](this);
-        }
-        repeat(item, count) { return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].repeat(item, count); }
-        render(HTML, element, insertAfter, append) {
-            if (element.parentElement === null)
-                _utils__WEBPACK_IMPORTED_MODULE_2__["default"].EE("cannot render by '<html>' element, since it's root of document.");
-            var html = [];
-            if (typeof HTML == "string")
-                html = _utils__WEBPACK_IMPORTED_MODULE_2__["default"].toHTML(HTML);
-            else if (HTML instanceof HTMLElement || HTML instanceof Node)
-                html[0] = HTML.cloneNode(true);
-            else if (HTML instanceof HTMLCollection || HTML instanceof NodeList)
-                for (let i = 0; i < HTML.length; i++)
-                    html[i] = HTML.item(i).cloneNode(true);
-            else
-                html = HTML;
-            const Rhtml = [...html].reverse(), parent = element.parentElement;
-            if (append === true)
-                for (let i = 0; i < html.length; i++)
-                    element.append(html[i]);
-            else if (append === false)
-                for (let i = 0; i < Rhtml.length; i++)
-                    element.prepend(Rhtml[i]);
-            else if (insertAfter === true) {
-                if (!element.nextSibling)
-                    for (let i = 0; i < Rhtml.length; i++)
-                        parent.append(Rhtml[i]);
-                else
-                    for (let i = 0; i < Rhtml.length; i++)
-                        parent.insertBefore(Rhtml[i], element.nextSibling);
-            }
-            else if (insertAfter === false)
-                for (let i = 0; i < html.length; i++)
-                    parent.insertBefore(html[i], element);
-            else
-                for (let i = 0; i < html.length; i++)
-                    element.append(html[i]);
-            return html;
-        }
-        e(s) {
-            let a = document.querySelectorAll(s);
-            if (!a.length)
-                return [];
-            if (a.length == 1 && s.match(/^.*#[^\s]*$/))
-                return a[0];
-            else
-                return Array.from(a);
-        }
+console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of dynamic.js, which is not suitable for production use.");
+class Dynamic {
+    constructor(options) {
+        this.options = undefined;
+        console.warn("Creating new Dynamic instance.");
+        console.log(options);
+        this.options = options;
+        this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](this);
+        this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](this);
     }
-    _utils__WEBPACK_IMPORTED_MODULE_2__["default"].constantize(Dynamic);
-    return Dynamic;
-})();
+    repeat(args) { return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].repeat(args.item, args.count); }
+    render(args) {
+        return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].render(args.HTML, args.element, args.insertAfter, args.append, args.disableDF);
+    }
+    e(s) {
+        let a = document.querySelectorAll(s);
+        if (!a.length)
+            return [];
+        if (a.length == 1 && s.match(/^.*#[^\s]*$/))
+            return a[0];
+        else
+            return Array.from(a);
+    }
+}
+_utils__WEBPACK_IMPORTED_MODULE_2__["default"].constantize(Dynamic);
 const w1ndow = window;
 w1ndow.Dynamic = Dynamic;
 

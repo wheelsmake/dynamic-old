@@ -1,4 +1,18 @@
-﻿type anyObject = Record<string, any>;
+﻿/* dynamic
+ * ©2022 LJM12914. https://github.com/openink/dynamic
+ * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
+*/
+import dataFlow from "./dataFlow";
+import utils from "./utils";
+interface Dynamic{
+    //template :template; //note:强烈不建议访问自己，很可能造成混乱。
+    dataFlow :dataFlow;
+    options :anyObject | undefined;
+    repeat :Function;
+    render :Function;
+    e :Function;
+}
+type anyObject = Record<string, any>;
 interface templateObject{
     id :string;
     content :HTMLElement | null;
@@ -7,13 +21,31 @@ interface instanceObject{
     reference :HTMLElement;
     slots :anyObject;
 }
-import utils from "./utils";
+interface registerArgs{
+    element :HTMLElement;
+    TUID? :string;
+    remove? :boolean;
+}
+interface renderArgs{
+    tuID :string;
+    element :HTMLElement;
+    slots? :anyObject;
+    removeOuterElement? :boolean;
+    insertAfter? :boolean;
+    append? :boolean;
+    disableDF? :boolean;
+}
+interface updateArgs{
+    tuID :string;
+    element :HTMLElement;
+}
 export default class template{
-    #dynamic :anyObject;
+    #dynamic :Dynamic;
     #templates :templateObject[] = [];
     #instances :instanceObject[] = [];
     #observer :MutationObserver;
-    constructor(dynamic :anyObject){
+    #test = "fdsaaaaaaaaaa";
+    constructor(dynamic :Dynamic){
         this.#dynamic = dynamic;
         this.#convertTemplate();
         this.#observer = new MutationObserver(this.#observerCB);
@@ -23,38 +55,39 @@ export default class template{
         });
     }
     //注册模板核心方法，不用判断nodynamic dynamic了！
-    register(element :HTMLElement, TUID? :string, remove? :Boolean) :string{
-        if(TUID !== undefined && !utils.checkTUID(TUID)) utils.E("TUID", "string with some limitations", `${TUID}, read the documentation for help`);
-        else if(TUID === undefined) TUID = utils.generateTUID();
+    register(args :registerArgs) :string{
+        if(args.TUID !== undefined && !utils.checkTUID(args.TUID)) utils.E("TUID", "string with some limitations", `${args.TUID}, read the documentation for help`);
+        else if(args.TUID === undefined) args.TUID = utils.generateTUID();
         var tem :templateObject = {
-            id: TUID,
+            id: args.TUID,
             content: null
         };
-        if(element instanceof HTMLTemplateElement){ //解决掉template的shadow dom
+        if(args.element instanceof HTMLTemplateElement){ //解决掉template的shadow dom
             var el = document.createElement("div");
-            for(let i = 0; i < element.content.childNodes.length; i++) el.appendChild(element.content.childNodes[i].cloneNode(true));
+            for(let i = 0; i < args.element.content.childNodes.length; i++) el.appendChild(args.element.content.childNodes[i].cloneNode(true));
             tem.content = el;
         }
-        else tem.content = element.cloneNode(true) as HTMLElement;
+        else tem.content = args.element.cloneNode(true) as HTMLElement;
         this.#templates.push(tem);
-        if(remove === true) element.remove();
-        return TUID;
+        if(args.remove === true) args.element.remove();
+        return args.TUID;
     }
-    //超级核心方法。
-    render(tuID :string, element :HTMLElement, slots? :anyObject, removeOuterElement? :Boolean, insertAfter? :Boolean, append? :Boolean) /*:HTMLElement*/{
+    //超级核心方法
+    render(args :renderArgs) :Node[] | null/*hack:ts不认utils.E类型，只能加一个null类型了，但是永远不会返回null*/{
         for(let i = 0; i < this.#templates.length; i++){
-            if(this.#templates[i].id === tuID){
-//todo:渲染模板
-                const id = this.#templates[i].id, content = this.#templates[i].content;
-                var HTML;
-                if(removeOuterElement === true){
-                    
-                }
+            if(this.#templates[i].id === args.tuID){
+                const id = this.#templates[i].id, content = this.#templates[i].content!;
+                var nodes :Node[] = [];
+                if(args.removeOuterElement === true) nodes = utils.getInnerNodes(content);
+                else nodes[0] = content.cloneNode(true);
+                //todo:slots变量替换
+                return utils.render(nodes, args.element, args.insertAfter, args.append, args.disableDF);
             }
         }
-        utils.E("tuID", "valid ID that exists", tuID);
+        utils.E("tuID", "valid ID that exists", args.tuID);
+        return null;
     }
-    update(tuID :string, element :HTMLElement) /*:HTMLElement*/{
+    update(args :updateArgs) /*:HTMLElement*/{
         //todo:提供tuid，更新模板内容
     }
     delete(tuID :string) :HTMLElement | null{
@@ -82,10 +115,8 @@ export default class template{
             ]
         }];*/
     }
-    getTemplates() :templateObject[]{return this.#templates;} //获取所有模板
-    //调试用方法，不要一直开着！
-    /**//*
-    /**/
+    //获取所有模板
+    getTemplates() :templateObject[]{return this.#templates;}
     //observer回调方法
     #observerCB = (resultList :MutationRecord[], observer :MutationObserver)=>{
         for(let i = 0; i < resultList.length; i++) for(let j = 0; j < resultList[i].addedNodes.length; j++){
@@ -103,14 +134,22 @@ export default class template{
                 if(templates[i].getAttribute("nodynamic") === null){
                     var tuid = templates[i].getAttribute("tuid");
                     if(!tuid || !utils.checkTUID(tuid)) tuid = utils.generateTUID();
-                    this.register(templates[i], tuid, templates[i].getAttribute("dynamic") !== null);
+                    this.register({
+                        element: templates[i],
+                        TUID: tuid,
+                        remove: templates[i].getAttribute("dynamic") !== null
+                    });
                 }
             }
         }
         else{
             var tuid = template_input.getAttribute("tuid");
             if(!tuid || !utils.checkTUID(tuid)) tuid = utils.generateTUID();
-            this.register(template_input, tuid, template_input.getAttribute("dynamic") !== null);
+            this.register({
+                element: template_input,
+                TUID: tuid,
+                remove: template_input.getAttribute("dynamic") !== null
+            });
         }
     }
 }

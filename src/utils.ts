@@ -1,4 +1,9 @@
-﻿type anyObject = Record<string, any>;
+﻿/* dynamic
+ * ©2022 LJM12914. https://github.com/openink/dynamic
+ * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
+*/
+type anyObject = Record<string, any>;
+var nodes :anyObject = {};
 function E(name? :string, type? :string, value? :any) :never{
     if(name === undefined) throw new Error("An error occured.");
     else throw new Error(`Argument '${name}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
@@ -18,6 +23,11 @@ function toHTMLString(HTML :HTMLElement) :string{
     ele.appendChild(HTML);
     return ele.innerHTML;
 }
+function getInnerNodes(el :HTMLElement) :Node[]{
+    var nodes :Node[] = [];
+    for(let i = 0; i < el.childNodes.length; i++) nodes[i] = el.childNodes[i].cloneNode(true);
+    return nodes;
+}
 function repeat(item :any, count :number) :any[]{
     if(typeof count != "number" || count < 1) E("count", "number smaller than 1", count);
     var arr :any[] = [];
@@ -34,7 +44,7 @@ function randoma2z029(length :number) :string{
     return s;
 }
 //检查传入的id是否符合规则
-function checkTUID(id : string) :Boolean{
+function checkTUID(id : string) :boolean{
     var preservedIDs :string[] = ["annotation-xml","color-profile","font-face","font-face-src","font-face-uri","font-face-format","font-face-name","missing-glyph"];
     var isValid = !!id.match("^[a-z0-9][a-z0-9-]+[a-z0-9]$");
     if(!isValid) console.warn(`The specified tuID is invalid: ${id}. Dynamic is going to generate one instead.`);
@@ -46,24 +56,47 @@ function checkTUID(id : string) :Boolean{
 }
 //生成id，abcdefgh-ijk
 function generateTUID() :string{
-    var s = [...randoma2z029(29)];
-    s[11] = "-";
-    return s.join("");
+    return `${randoma2z029(11)}-${randoma2z029(17)}`;
 }
 function constantize(obj :anyObject) :void{
     Object.freeze(obj);
     for(let i = 0; i < Object.keys(obj).length; i++) if(typeof obj[Object.keys(obj)[i]] == "object") constantize(obj[Object.keys(obj)[i]]);
 }
+function render(HTML :string | HTMLElement | HTMLCollection | Node | NodeList | Node[], element :HTMLElement, insertAfter? :boolean, append? :boolean, disableDF? :boolean) :Node[]{
+    if(element.parentElement === null) EE("cannot render by '<html>' element, since it's root of document.");
+    var html :Node[] = [];
+    if(typeof HTML == "string") html = toHTML(HTML);
+    else if(HTML instanceof HTMLElement || HTML instanceof Node) html[0] = HTML.cloneNode(true);
+    else if(HTML instanceof HTMLCollection || HTML instanceof NodeList) for(let i = 0; i < HTML.length; i++) html[i] = HTML.item(i)!.cloneNode(true);
+    else html = HTML;
+    const Rhtml = [...html].reverse(), parent = element.parentElement;
+    if(append === true) for(let i = 0; i < html.length; i++) element.append(html[i]);
+    else if(append === false) for(let i = 0; i < Rhtml.length; i++) element.prepend(Rhtml[i]);
+    else if(insertAfter === true){
+        if(!element.nextSibling) for(let i = 0; i < Rhtml.length; i++) parent!.append(Rhtml[i]);
+        else for(let i = 0; i < Rhtml.length; i++) parent!.insertBefore(Rhtml[i], element.nextSibling);
+    }
+    else if(insertAfter === false) for(let i = 0; i < html.length; i++) parent!.insertBefore(html[i], element);
+    else for(let i = 0; i < html.length; i++) element.append(html[i]);
+    //todo:加入作用域
+    return html;
+}
+function generateDFID() :string{
+    return `dfid-${randoma2z029(24)}`;
+}
 var utils = {
+    nodes: nodes,
     E: E,
     EE: EE,
     toHTML: toHTML,
     toHTMLString: toHTMLString,
+    getInnerNodes: getInnerNodes,
     repeat: repeat,
     randoma2z029: randoma2z029,
     checkTUID: checkTUID,
     generateTUID: generateTUID,
-    constantize: constantize
+    constantize: constantize,
+    render: render,
+    generateDFID: generateDFID
 }
-//constantize(utils);
 export default utils;
