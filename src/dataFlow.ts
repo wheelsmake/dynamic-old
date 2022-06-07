@@ -4,13 +4,14 @@
 */
 import template from "./template";
 import utils from "./utils";
-interface Dynamic{
+interface Dynamic{ //尽量不要在这里调用dynamic方法，原则上只允许使用变量，用utils不香吗
     template :template;
     //dataFlow :dataFlow; //note:强烈不建议访问自己，很可能造成混乱。
     options :anyObject | undefined;
     repeat :Function;
     render :Function;
     e :Function;
+    hatch :Function;
 }
 type anyObject = Record<string, any>;
 interface dfScope{
@@ -37,7 +38,7 @@ export default class dataFlow{
         });
     }
     new(){
-        //todo:
+        //todo:新建作用域
     }
     /*generateDFID(){
         return utils.generateDFID();

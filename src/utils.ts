@@ -3,7 +3,6 @@
  * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
 */
 type anyObject = Record<string, any>;
-//var nodes :anyObject = {};
 function E(argument? :string, type? :string, value? :any) :never{
     if(argument === undefined) throw new Error("An error occured.");
     else throw new Error(`Argument '${argument}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
@@ -13,7 +12,6 @@ function toHTML(HTML :string) :Node[]{
     const ele = document.createElement("div");
     var returnA :Node[] = [];
     ele.innerHTML = HTML;
-    //console.log(ele.innerHTML);
     if(HTML === "" || typeof HTML != "string") E("HTML", "string", HTML);
     for(let i = 0; i < ele.childNodes.length; i++) returnA[i] = ele.childNodes[i];
     return returnA;
@@ -45,7 +43,7 @@ function randoma2z029(length :number) :string{
 }
 //检查传入的id是否符合规则
 function checkTUID(id :string) :boolean{
-    var preservedIDs :string[] = ["annotation-xml","color-profile","font-face","font-face-src","font-face-uri","font-face-format","font-face-name","missing-glyph"];
+    const preservedIDs :string[] = ["annotation-xml","color-profile","font-face","font-face-src","font-face-uri","font-face-format","font-face-name","missing-glyph"];
     var isValid = !!id.match("^[a-z0-9][a-z0-9-]+[a-z0-9]$");
     if(!isValid) console.warn(`The specified tuID is invalid: ${id}. Dynamic is going to generate one instead.`);
     if(preservedIDs.indexOf(id) != -1){
@@ -85,10 +83,17 @@ function generateDFID() :string{
     return `dfid-${randoma2z029(24)}`;
 }
 function checkDFID(id :string) :boolean{
-    //todo:
+    //todo:检查dfID是否合乎标准
     return true;
 }
-var utils = {
+function hatch(element :HTMLElement, remove? :boolean) :Node[]{
+    //note:Nodelist类型会实时同步造成不稳定的for循环，必须转换为Node[]！
+    const par = element.parentElement!, children :Node[] = Array.from(element.childNodes);
+    for(let i = 0; i < children.length; i++) par.insertBefore(children[i], element);
+    if(remove === true) element.remove();
+    return children;
+}
+const utils = {
     E: E,
     EE: EE,
     toHTML: toHTML,
@@ -100,6 +105,7 @@ var utils = {
     generateTUID: generateTUID,
     constantize: constantize,
     render: render,
-    generateDFID: generateDFID
+    generateDFID: generateDFID,
+    hatch: hatch
 }
 export default utils;

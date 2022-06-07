@@ -123,15 +123,12 @@ dy.template.render({
 
 该方法以节点数组形式返回文档中被插入的模板实例。
 
-或者也可以直接在HTML中释放以 `tuID` 为元素类型的元素，dynamic 会自动将其替换为模板内容。必须正确地关闭标签。
+或者也可以直接在 HTML 中释放以 `tuID` 为元素类型的元素，dynamic 会自动将其替换为模板内容。
 
-```html
-<!--tuID = my-tuid-->
-<my-tuid></my-tuid>
-```
+- dynamic 不会扫描已有的 DOM，释放必须在注册相应模板**后**发生。
 
 ```typescript
-document.createElement("my-tuid");
+dy.e("#myelement").append(document.createElement("my-tuid"));
 ```
 
 释放带 `slot` 模板变量的模板：注意模板变量的赋值与顺序无关。dynamic 会自动将模板中的变量与元素中赋值的模板变量进行比对并插入，若模板中无此模板变量，则会被直接就地转换为文本节点。
@@ -439,7 +436,7 @@ dy.e(s :string) :Node[] | Node;
 
 仅当传入选择器的最终选择器为 ID 选择器（即 `#` ）且获取到元素时返回 `Node` 类型单个元素，否则返回  `Node[]` 类型。
 
-## DOM 脱壳（TODO）
+## DOM 脱壳
 
 将某些同父元素的元素从它们的父元素里脱出，放入祖父元素内。使用模板时非常实用的方法。
 

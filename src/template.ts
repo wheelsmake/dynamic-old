@@ -4,13 +4,14 @@
 */
 import dataFlow from "./dataFlow";
 import utils from "./utils";
-interface Dynamic{
+interface Dynamic{ //尽量不要在这里调用dynamic方法，原则上只允许使用变量，用utils不香吗
     //template :template; //note:强烈不建议访问自己，很可能造成混乱。
     dataFlow :dataFlow;
     options :anyObject | undefined;
     repeat :Function;
     render :Function;
     e :Function;
+    hatch :Function;
 }
 type anyObject = Record<string, any>;
 interface templateObject{
@@ -139,10 +140,20 @@ export default class template{
     //observer回调方法
     #observerCB = (resultList :MutationRecord[], observer :MutationObserver)=>{
         for(let i = 0; i < resultList.length; i++) for(let j = 0; j < resultList[i].addedNodes.length; j++){
-            const ele = resultList[i].addedNodes[j] as HTMLElement;
+            const ele = resultList[i].addedNodes[j];
+            if(!(ele instanceof HTMLElement)) return; //不处理文本节点或注释节点
+            //console.log(ele.tagName);
             //template增量注册
             if(ele instanceof HTMLTemplateElement && ele.getAttribute("nodynamic") === null) this.#convertTemplate(ele);
-            //todo:释放tuid检测与渲染模板
+            //释放tuid检测与渲染模板
+            if(this.getContent(ele.tagName.toLowerCase())){
+                //todo:识别模板变量并插入
+                this.render({
+                    tuID: ele.tagName.toLowerCase(),
+                    element: ele
+                });
+                utils.hatch(ele, true);
+            }
         }
     }
     //从template增量注册与起始注册混用方法

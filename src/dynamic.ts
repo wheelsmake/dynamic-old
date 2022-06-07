@@ -14,6 +14,10 @@ interface repeatArgs{
     item :any;
     count :number;
 }
+interface hatchArgs{
+    element :HTMLElement;
+    remove? :boolean;
+}
 import template from "./template";
 import dataFlow from "./dataFlow";
 import utils from "./utils";
@@ -28,7 +32,9 @@ class Dynamic{
         this.template = new template(this);
         this.dataFlow = new dataFlow(this);
     }
-    repeat(args :repeatArgs) :any[]{return utils.repeat(args.item, args.count);}
+    repeat(args :repeatArgs) :any[]{
+        return utils.repeat(args.item, args.count);
+    }
     render(args :renderArgs) :Node[]{
         return utils.render(args.HTML, args.element, args.insertAfter, args.append, args.disableDF);
     }
@@ -37,6 +43,9 @@ class Dynamic{
         if(!a.length) return [];
         if(a.length == 1 && s.match(/^.*#[^\s]*$/)) return a[0];//note:当一个页面存在相同ID元素时不会走这里，而会返回数组，因为说好了是querySelectorAll了并且本来就不应该有重复ID
         else return Array.from(a);
+    }
+    hatch(args :hatchArgs) :Node[]{
+        return utils.hatch(args.element, args.remove);
     }
 }
 utils.constantize(Dynamic);

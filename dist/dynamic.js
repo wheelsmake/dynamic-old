@@ -81,8 +81,17 @@ class template {
             for (let i = 0; i < resultList.length; i++)
                 for (let j = 0; j < resultList[i].addedNodes.length; j++) {
                     const ele = resultList[i].addedNodes[j];
+                    if (!(ele instanceof HTMLElement))
+                        return;
                     if (ele instanceof HTMLTemplateElement && ele.getAttribute("nodynamic") === null)
                         __classPrivateFieldGet(this, _template_convertTemplate, "f").call(this, ele);
+                    if (this.getContent(ele.tagName.toLowerCase())) {
+                        this.render({
+                            tuID: ele.tagName.toLowerCase(),
+                            element: ele
+                        });
+                        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].hatch(ele, true);
+                    }
                 }
         });
         _template_convertTemplate.set(this, (template_input) => {
@@ -269,7 +278,7 @@ function randoma2z029(length) {
     return s;
 }
 function checkTUID(id) {
-    var preservedIDs = ["annotation-xml", "color-profile", "font-face", "font-face-src", "font-face-uri", "font-face-format", "font-face-name", "missing-glyph"];
+    const preservedIDs = ["annotation-xml", "color-profile", "font-face", "font-face-src", "font-face-uri", "font-face-format", "font-face-name", "missing-glyph"];
     var isValid = !!id.match("^[a-z0-9][a-z0-9-]+[a-z0-9]$");
     if (!isValid)
         console.warn(`The specified tuID is invalid: ${id}. Dynamic is going to generate one instead.`);
@@ -330,7 +339,15 @@ function generateDFID() {
 function checkDFID(id) {
     return true;
 }
-var utils = {
+function hatch(element, remove) {
+    const par = element.parentElement, children = Array.from(element.childNodes);
+    for (let i = 0; i < children.length; i++)
+        par.insertBefore(children[i], element);
+    if (remove === true)
+        element.remove();
+    return children;
+}
+const utils = {
     E: E,
     EE: EE,
     toHTML: toHTML,
@@ -342,7 +359,8 @@ var utils = {
     generateTUID: generateTUID,
     constantize: constantize,
     render: render,
-    generateDFID: generateDFID
+    generateDFID: generateDFID,
+    hatch: hatch
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (utils);
 
@@ -427,7 +445,9 @@ class Dynamic {
         this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](this);
         this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](this);
     }
-    repeat(args) { return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].repeat(args.item, args.count); }
+    repeat(args) {
+        return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].repeat(args.item, args.count);
+    }
     render(args) {
         return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].render(args.HTML, args.element, args.insertAfter, args.append, args.disableDF);
     }
@@ -439,6 +459,9 @@ class Dynamic {
             return a[0];
         else
             return Array.from(a);
+    }
+    hatch(args) {
+        return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].hatch(args.element, args.remove);
     }
 }
 _utils__WEBPACK_IMPORTED_MODULE_2__["default"].constantize(Dynamic);
