@@ -12,7 +12,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ dataFlow)
 /* harmony export */ });
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.ts");
 var __classPrivateFieldSet = (undefined && undefined.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -24,12 +23,12 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _dataFlow_dynamic, _dataFlow_dfScopes, _dataFlow_observer, _dataFlow_observerCB;
-
+var _dataFlow_dynamic, _dataFlow_dfScopes, _dataFlow_dataNodes, _dataFlow_observer, _dataFlow_observerCB;
 class dataFlow {
     constructor(dynamic) {
         _dataFlow_dynamic.set(this, void 0);
         _dataFlow_dfScopes.set(this, []);
+        _dataFlow_dataNodes.set(this, []);
         _dataFlow_observer.set(this, void 0);
         _dataFlow_observerCB.set(this, (resultList, observer) => {
         });
@@ -42,11 +41,8 @@ class dataFlow {
     }
     new() {
     }
-    generateDFID() {
-        return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateDFID();
-    }
 }
-_dataFlow_dynamic = new WeakMap(), _dataFlow_dfScopes = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow_observerCB = new WeakMap();
+_dataFlow_dynamic = new WeakMap(), _dataFlow_dfScopes = new WeakMap(), _dataFlow_dataNodes = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow_observerCB = new WeakMap();
 
 
 /***/ }),
@@ -73,7 +69,7 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _template_dynamic, _template_templates, _template_instances, _template_observer, _template_test, _template_observerCB, _template_convertTemplate;
+var _template_dynamic, _template_templates, _template_instances, _template_observer, _template_observerCB, _template_convertTemplate;
 
 class template {
     constructor(dynamic) {
@@ -81,7 +77,6 @@ class template {
         _template_templates.set(this, []);
         _template_instances.set(this, []);
         _template_observer.set(this, void 0);
-        _template_test.set(this, "fdsaaaaaaaaaa");
         _template_observerCB.set(this, (resultList, observer) => {
             for (let i = 0; i < resultList.length; i++)
                 for (let j = 0; j < resultList[i].addedNodes.length; j++) {
@@ -100,7 +95,7 @@ class template {
                             tuid = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
                         this.register({
                             element: templates[i],
-                            TUID: tuid,
+                            tuID: tuid,
                             remove: templates[i].getAttribute("dynamic") !== null
                         });
                     }
@@ -112,7 +107,7 @@ class template {
                     tuid = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
                 this.register({
                     element: template_input,
-                    TUID: tuid,
+                    tuID: tuid,
                     remove: template_input.getAttribute("dynamic") !== null
                 });
             }
@@ -126,31 +121,37 @@ class template {
         });
     }
     register(args) {
-        if (args.TUID !== undefined && !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(args.TUID))
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("TUID", "string with some limitations", `${args.TUID}, read the documentation for help`);
-        else if (args.TUID === undefined)
-            args.TUID = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
-        var tem = {
-            id: args.TUID,
-            content: null
-        };
+        if (args.tuID !== undefined && !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(args.tuID))
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("tuID", "string with some limitations", `${args.tuID}, read the documentation for help`);
+        else if (args.tuID === undefined)
+            args.tuID = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
+        if (this.existsTUID(args.tuID)) {
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("tuID", "non-repetitive string", args.tuID);
+        }
         if (args.element instanceof HTMLTemplateElement) {
             var el = document.createElement("div");
             for (let i = 0; i < args.element.content.childNodes.length; i++)
                 el.appendChild(args.element.content.childNodes[i].cloneNode(true));
-            tem.content = el;
+            var tem = {
+                id: args.tuID,
+                content: el
+            };
         }
-        else
-            tem.content = args.element.cloneNode(true);
+        else {
+            var tem = {
+                id: args.tuID,
+                content: args.element.cloneNode(true)
+            };
+        }
         __classPrivateFieldGet(this, _template_templates, "f").push(tem);
         if (args.remove === true)
             args.element.remove();
-        return args.TUID;
+        return args.tuID;
     }
     render(args) {
         for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++) {
             if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === args.tuID) {
-                const id = __classPrivateFieldGet(this, _template_templates, "f")[i].id, content = __classPrivateFieldGet(this, _template_templates, "f")[i].content;
+                const content = __classPrivateFieldGet(this, _template_templates, "f")[i].content;
                 var nodes = [];
                 if (args.removeOuterElement === true)
                     nodes = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].getInnerNodes(content);
@@ -163,6 +164,17 @@ class template {
         return null;
     }
     update(args) {
+        for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
+            if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === args.tuID) {
+                if (args.element instanceof HTMLElement) {
+                    var oldContent = __classPrivateFieldGet(this, _template_templates, "f")[i].content;
+                    __classPrivateFieldGet(this, _template_templates, "f")[i].content = args.element;
+                    return oldContent;
+                }
+                else
+                    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("element", "HTMLElement", args.element);
+            }
+        return null;
     }
     delete(tuID) {
         for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
@@ -179,17 +191,23 @@ class template {
                 return __classPrivateFieldGet(this, _template_templates, "f")[i].content;
         return null;
     }
-    exists(element) {
+    existsTUID(tuID) {
         for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
-            if (__classPrivateFieldGet(this, _template_templates, "f")[i].content === element)
+            if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === tuID)
+                return true;
+        return false;
+    }
+    existsElement(element) {
+        for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
+            if (__classPrivateFieldGet(this, _template_templates, "f")[i].content.isEqualNode(element))
                 return __classPrivateFieldGet(this, _template_templates, "f")[i].id;
         return null;
     }
+    getTemplates() { return __classPrivateFieldGet(this, _template_templates, "f"); }
     getInstance(tuID) {
     }
-    getTemplates() { return __classPrivateFieldGet(this, _template_templates, "f"); }
 }
-_template_dynamic = new WeakMap(), _template_templates = new WeakMap(), _template_instances = new WeakMap(), _template_observer = new WeakMap(), _template_test = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
+_template_dynamic = new WeakMap(), _template_templates = new WeakMap(), _template_instances = new WeakMap(), _template_observer = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
 
 
 /***/ }),
@@ -204,12 +222,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-var nodes = {};
-function E(name, type, value) {
-    if (name === undefined)
+function E(argument, type, value) {
+    if (argument === undefined)
         throw new Error("An error occured.");
     else
-        throw new Error(`Argument '${name}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
+        throw new Error(`Argument '${argument}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
 }
 function EE(message) { throw new Error(message); }
 function toHTML(HTML) {
@@ -310,8 +327,10 @@ function render(HTML, element, insertAfter, append, disableDF) {
 function generateDFID() {
     return `dfid-${randoma2z029(24)}`;
 }
+function checkDFID(id) {
+    return true;
+}
 var utils = {
-    nodes: nodes,
     E: E,
     EE: EE,
     toHTML: toHTML,
@@ -403,8 +422,7 @@ console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou 
 class Dynamic {
     constructor(options) {
         this.options = undefined;
-        console.warn("Creating new Dynamic instance.");
-        console.log(options);
+        console.warn("Creating new Dynamic instance with options", options);
         this.options = options;
         this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](this);
         this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](this);

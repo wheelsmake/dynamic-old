@@ -15,7 +15,7 @@ interface Dynamic{
 type anyObject = Record<string, any>;
 interface templateObject{
     id :string;
-    content :HTMLElement | null;
+    content :HTMLElement;
 }
 interface instanceObject{
     reference :HTMLElement;
@@ -23,7 +23,7 @@ interface instanceObject{
 }
 interface registerArgs{
     element :HTMLElement;
-    TUID? :string;
+    tuID? :string;
     remove? :boolean;
 }
 interface renderArgs{
@@ -44,7 +44,6 @@ export default class template{
     #templates :templateObject[] = [];
     #instances :instanceObject[] = [];
     #observer :MutationObserver;
-    #test = "fdsaaaaaaaaaa";
     constructor(dynamic :Dynamic){
         this.#dynamic = dynamic;
         this.#convertTemplate();
@@ -56,27 +55,35 @@ export default class template{
     }
     //注册模板核心方法，不用判断nodynamic dynamic了！
     register(args :registerArgs) :string{
-        if(args.TUID !== undefined && !utils.checkTUID(args.TUID)) utils.E("TUID", "string with some limitations", `${args.TUID}, read the documentation for help`);
-        else if(args.TUID === undefined) args.TUID = utils.generateTUID();
-        var tem :templateObject = {
-            id: args.TUID,
-            content: null
-        };
+        if(args.tuID !== undefined && !utils.checkTUID(args.tuID)) utils.E("tuID", "string with some limitations", `${args.tuID}, read the documentation for help`);
+        else if(args.tuID === undefined) args.tuID = utils.generateTUID();
+        if(this.existsTUID(args.tuID)){
+            //todo:碰撞处理，万一真的碰撞了怎么办……
+            utils.E("tuID", "non-repetitive string", args.tuID);
+        }
         if(args.element instanceof HTMLTemplateElement){ //解决掉template的shadow dom
             var el = document.createElement("div");
             for(let i = 0; i < args.element.content.childNodes.length; i++) el.appendChild(args.element.content.childNodes[i].cloneNode(true));
-            tem.content = el;
+            var tem :templateObject = {
+                id: args.tuID,
+                content: el
+            };
         }
-        else tem.content = args.element.cloneNode(true) as HTMLElement;
+        else{
+            var tem :templateObject = {
+                id: args.tuID,
+                content: args.element.cloneNode(true) as HTMLElement
+            };
+        }
         this.#templates.push(tem);
         if(args.remove === true) args.element.remove();
-        return args.TUID;
+        return args.tuID;
     }
     //超级核心方法
     render(args :renderArgs) :Node[] | null/*hack:ts不认utils.E类型，只能加一个null类型了，但是永远不会返回null*/{
         for(let i = 0; i < this.#templates.length; i++){
             if(this.#templates[i].id === args.tuID){
-                const id = this.#templates[i].id, content = this.#templates[i].content!;
+                const content = this.#templates[i].content;
                 var nodes :Node[] = [];
                 if(args.removeOuterElement === true) nodes = utils.getInnerNodes(content);
                 else nodes[0] = content.cloneNode(true);
@@ -87,8 +94,16 @@ export default class template{
         utils.E("tuID", "valid ID that exists", args.tuID);
         return null;
     }
-    update(args :updateArgs) /*:HTMLElement*/{
-        //todo:提供tuid，更新模板内容
+    update(args :updateArgs) :HTMLElement | null{
+        for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === args.tuID){
+            if(args.element instanceof HTMLElement){
+                var oldContent = this.#templates[i].content;
+                this.#templates[i].content = args.element;
+                return oldContent;
+            }
+            else utils.E("element", "HTMLElement", args.element);
+        }
+        return null;
     }
     delete(tuID :string) :HTMLElement | null{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID){
@@ -99,13 +114,19 @@ export default class template{
         return null;
     }
     getContent(tuID :string) :HTMLElement | null{
-        for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID) return this.#templates[i].content as HTMLElement;
+        for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID) return this.#templates[i].content;
         return null;
     }
-    exists(element :HTMLElement) :string | null{
-        for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].content === element) return this.#templates[i].id as string;
+    existsTUID(tuID :string) :boolean{
+        for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID) return true;
+        return false;
+    }
+    existsElement(element :HTMLElement) :string | null{
+        for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].content.isEqualNode(element)) return this.#templates[i].id;
         return null;
     }
+    //获取所有模板
+    getTemplates() :templateObject[]{return this.#templates;}
     getInstance(tuID :string) /*:instanceObject | instanceObject[]*/{
         //todo:传入tuid，获取已实例化的模板列表
         /*return [{
@@ -115,8 +136,6 @@ export default class template{
             ]
         }];*/
     }
-    //获取所有模板
-    getTemplates() :templateObject[]{return this.#templates;}
     //observer回调方法
     #observerCB = (resultList :MutationRecord[], observer :MutationObserver)=>{
         for(let i = 0; i < resultList.length; i++) for(let j = 0; j < resultList[i].addedNodes.length; j++){
@@ -136,7 +155,7 @@ export default class template{
                     if(!tuid || !utils.checkTUID(tuid)) tuid = utils.generateTUID();
                     this.register({
                         element: templates[i],
-                        TUID: tuid,
+                        tuID: tuid,
                         remove: templates[i].getAttribute("dynamic") !== null
                     });
                 }
@@ -147,7 +166,7 @@ export default class template{
             if(!tuid || !utils.checkTUID(tuid)) tuid = utils.generateTUID();
             this.register({
                 element: template_input,
-                TUID: tuid,
+                tuID: tuid,
                 remove: template_input.getAttribute("dynamic") !== null
             });
         }

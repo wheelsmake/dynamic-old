@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0,shrink-to-fit=no" />
+        <title>dynamic test</title>
+    </head>
+    <body>
+        <div id="template1"><div>我是模板1！</div></div>
+        <div id="template2"><div>我是模板2！</div></div>
+        <div>
+            <button onclick="re()">注册-已通过</button>
+            <button onclick="d()">删除-已通过</button>
+            <button onclick="r()">追加-已通过</button>
+            <button onclick="a()">update 1-已通过</button>
+            <button onclick="b()">update 2-已通过</button>
+            <button onclick="console.log(dy.template.getContent('ljm-12914'))">获取内容-已通过</button>
+            <button onclick="console.log(dy.template.existsElement(dy.e('#template1').children[0]))">是否存在1-已通过</button>
+            <details id="test" open>
+                <summary>我是应用区域！</summary>
+            </details>
+        </div>
+    </body>
+    <script src="../dist/dynamic.js"></script>
+    <script src="template-operations.js"></script>
+</html>

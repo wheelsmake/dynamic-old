@@ -3,10 +3,10 @@
  * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
 */
 type anyObject = Record<string, any>;
-var nodes :anyObject = {};
-function E(name? :string, type? :string, value? :any) :never{
-    if(name === undefined) throw new Error("An error occured.");
-    else throw new Error(`Argument '${name}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
+//var nodes :anyObject = {};
+function E(argument? :string, type? :string, value? :any) :never{
+    if(argument === undefined) throw new Error("An error occured.");
+    else throw new Error(`Argument '${argument}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
 }
 function EE(message :any) :never{throw new Error(message);}
 function toHTML(HTML :string) :Node[]{
@@ -44,7 +44,7 @@ function randoma2z029(length :number) :string{
     return s;
 }
 //检查传入的id是否符合规则
-function checkTUID(id : string) :boolean{
+function checkTUID(id :string) :boolean{
     var preservedIDs :string[] = ["annotation-xml","color-profile","font-face","font-face-src","font-face-uri","font-face-format","font-face-name","missing-glyph"];
     var isValid = !!id.match("^[a-z0-9][a-z0-9-]+[a-z0-9]$");
     if(!isValid) console.warn(`The specified tuID is invalid: ${id}. Dynamic is going to generate one instead.`);
@@ -84,8 +84,11 @@ function render(HTML :string | HTMLElement | HTMLCollection | Node | NodeList | 
 function generateDFID() :string{
     return `dfid-${randoma2z029(24)}`;
 }
+function checkDFID(id :string) :boolean{
+    //todo:
+    return true;
+}
 var utils = {
-    nodes: nodes,
     E: E,
     EE: EE,
     toHTML: toHTML,

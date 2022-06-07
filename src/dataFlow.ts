@@ -16,12 +16,17 @@ type anyObject = Record<string, any>;
 interface dfScope{
     id :string;
     element :HTMLElement;
-    notLinkWith? :HTMLElement[];
-    notLinkBy? :HTMLElement[];
+}
+interface dataNode{
+    id :string;
+    processor :Function;
+    prevNodes :dataNode[];
+    nextNodes :dataNode[];
 }
 export default class dataFlow{
     #dynamic :Dynamic;
     #dfScopes :dfScope[] = [];
+    #dataNodes :dataNode[] = [];
     #observer :MutationObserver;
     constructor(dynamic :Dynamic){
         this.#dynamic = dynamic;

@@ -23,8 +23,7 @@ class Dynamic{
     dataFlow :dataFlow;
     options :anyObject | undefined = undefined;
     constructor(options? :anyObject){
-        console.warn("Creating new Dynamic instance.");
-        console.log(options);
+        console.warn("Creating new Dynamic instance with options", options);
         this.options = options;
         this.template = new template(this);
         this.dataFlow = new dataFlow(this);
