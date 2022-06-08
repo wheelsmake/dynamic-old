@@ -560,7 +560,7 @@ dynamic 默认只允许数据节点存在一个下级节点，因为多下级节
 
 ```json
 {"bannedTagName": [
-	"style",
+    "style",
     "link"
 ]}
 ```
