@@ -4,33 +4,13 @@
 */
 import template from "./template";
 import utils from "./utils";
-interface Dynamic{ //尽量不要在这里调用dynamic方法，原则上只允许使用变量，用utils不香吗
-    template :template;
-    //dataFlow :dataFlow; //note:强烈不建议访问自己，很可能造成混乱。
-    options :anyObject | undefined;
-    repeat :Function;
-    render :Function;
-    e :Function;
-    hatch :Function;
-}
-type anyObject = Record<string, any>;
-interface dfScope{
-    id :string;
-    element :HTMLElement;
-}
-interface dataNode{
-    id :string;
-    processor :Function;
-    prevNodes :dataNode[];
-    nextNodes :dataNode[];
-}
 export default class dataFlow{
-    #dynamic :Dynamic;
+    #options :dynamicOptions;
     #dfScopes :dfScope[] = [];
     #dataNodes :dataNode[] = [];
     #observer :MutationObserver;
-    constructor(dynamic :Dynamic){
-        this.#dynamic = dynamic;
+    constructor(options :dynamicOptions){
+        this.#options = options;
         this.#observer = new MutationObserver(this.#observerCB);
         this.#observer.observe(document.body,{
             childList: true,

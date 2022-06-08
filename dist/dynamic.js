@@ -23,16 +23,16 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _dataFlow_dynamic, _dataFlow_dfScopes, _dataFlow_dataNodes, _dataFlow_observer, _dataFlow_observerCB;
+var _dataFlow_options, _dataFlow_dfScopes, _dataFlow_dataNodes, _dataFlow_observer, _dataFlow_observerCB;
 class dataFlow {
-    constructor(dynamic) {
-        _dataFlow_dynamic.set(this, void 0);
+    constructor(options) {
+        _dataFlow_options.set(this, void 0);
         _dataFlow_dfScopes.set(this, []);
         _dataFlow_dataNodes.set(this, []);
         _dataFlow_observer.set(this, void 0);
         _dataFlow_observerCB.set(this, (resultList, observer) => {
         });
-        __classPrivateFieldSet(this, _dataFlow_dynamic, dynamic, "f");
+        __classPrivateFieldSet(this, _dataFlow_options, options, "f");
         __classPrivateFieldSet(this, _dataFlow_observer, new MutationObserver(__classPrivateFieldGet(this, _dataFlow_observerCB, "f")), "f");
         __classPrivateFieldGet(this, _dataFlow_observer, "f").observe(document.body, {
             childList: true,
@@ -42,7 +42,7 @@ class dataFlow {
     new() {
     }
 }
-_dataFlow_dynamic = new WeakMap(), _dataFlow_dfScopes = new WeakMap(), _dataFlow_dataNodes = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow_observerCB = new WeakMap();
+_dataFlow_options = new WeakMap(), _dataFlow_dfScopes = new WeakMap(), _dataFlow_dataNodes = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow_observerCB = new WeakMap();
 
 
 /***/ }),
@@ -69,13 +69,14 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _template_dynamic, _template_templates, _template_instances, _template_observer, _template_observerCB, _template_convertTemplate;
+var _template_instances, _template_options, _template_templates, _template_instances_1, _template_observer, _template_getTemplateObject, _template_observerCB, _template_convertTemplate;
 
 class template {
-    constructor(dynamic) {
-        _template_dynamic.set(this, void 0);
+    constructor(options) {
+        _template_instances.add(this);
+        _template_options.set(this, void 0);
         _template_templates.set(this, []);
-        _template_instances.set(this, []);
+        _template_instances_1.set(this, []);
         _template_observer.set(this, void 0);
         _template_observerCB.set(this, (resultList, observer) => {
             for (let i = 0; i < resultList.length; i++)
@@ -83,7 +84,7 @@ class template {
                     const ele = resultList[i].addedNodes[j];
                     if (!(ele instanceof HTMLElement))
                         return;
-                    if (ele instanceof HTMLTemplateElement && ele.getAttribute("nodynamic") === null)
+                    if (ele instanceof HTMLTemplateElement)
                         __classPrivateFieldGet(this, _template_convertTemplate, "f").call(this, ele);
                     if (this.getContent(ele.tagName.toLowerCase())) {
                         this.render({
@@ -95,33 +96,31 @@ class template {
                 }
         });
         _template_convertTemplate.set(this, (template_input) => {
+            const goRender = (template) => {
+                if (template.getAttribute("nodynamic") === null) {
+                    var tuid = template.getAttribute("tuid");
+                    if (!tuid || !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(tuid))
+                        tuid = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
+                    const el = document.createElement("div");
+                    for (let i = 0; i < template.content.childNodes.length; i++)
+                        el.appendChild(template.content.childNodes[i].cloneNode(true));
+                    if (template.getAttribute("dynamic") !== null)
+                        template.remove();
+                    this.register({
+                        element: el,
+                        tuID: tuid
+                    });
+                }
+            };
             if (template_input === undefined) {
                 const templates = document.querySelectorAll("template");
-                for (let i = 0; i < templates.length; i++) {
-                    if (templates[i].getAttribute("nodynamic") === null) {
-                        var tuid = templates[i].getAttribute("tuid");
-                        if (!tuid || !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(tuid))
-                            tuid = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
-                        this.register({
-                            element: templates[i],
-                            tuID: tuid,
-                            remove: templates[i].getAttribute("dynamic") !== null
-                        });
-                    }
-                }
+                for (let i = 0; i < templates.length; i++)
+                    goRender(templates[i]);
             }
-            else {
-                var tuid = template_input.getAttribute("tuid");
-                if (!tuid || !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(tuid))
-                    tuid = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
-                this.register({
-                    element: template_input,
-                    tuID: tuid,
-                    remove: template_input.getAttribute("dynamic") !== null
-                });
-            }
+            else
+                goRender(template_input);
         });
-        __classPrivateFieldSet(this, _template_dynamic, dynamic, "f");
+        __classPrivateFieldSet(this, _template_options, options, "f");
         __classPrivateFieldGet(this, _template_convertTemplate, "f").call(this);
         __classPrivateFieldSet(this, _template_observer, new MutationObserver(__classPrivateFieldGet(this, _template_observerCB, "f")), "f");
         __classPrivateFieldGet(this, _template_observer, "f").observe(document.body, {
@@ -134,24 +133,20 @@ class template {
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("tuID", "string with some limitations", `${args.tuID}, read the documentation for help`);
         else if (args.tuID === undefined)
             args.tuID = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
-        if (this.existsTUID(args.tuID)) {
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("tuID", "non-repetitive string", args.tuID);
+        while (this.existsTUID(args.tuID)) {
+            if (__classPrivateFieldGet(this, _template_options, "f") && __classPrivateFieldGet(this, _template_options, "f").enableAntiClash === true) {
+                if (__classPrivateFieldGet(this, _template_options, "f").clashHandler !== undefined)
+                    args.tuID = __classPrivateFieldGet(this, _template_options, "f").clashHandler("tuID", args, __classPrivateFieldGet(this, _template_instances, "m", _template_getTemplateObject).call(this, args.tuID));
+                else
+                    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("options.clashHandler", "Function", __classPrivateFieldGet(this, _template_options, "f").clashHandler);
+            }
+            else
+                _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("tuID", "non-repetitive string", args.tuID);
         }
-        if (args.element instanceof HTMLTemplateElement) {
-            var el = document.createElement("div");
-            for (let i = 0; i < args.element.content.childNodes.length; i++)
-                el.appendChild(args.element.content.childNodes[i].cloneNode(true));
-            var tem = {
-                id: args.tuID,
-                content: el
-            };
-        }
-        else {
-            var tem = {
-                id: args.tuID,
-                content: args.element.cloneNode(true)
-            };
-        }
+        const tem = {
+            id: args.tuID,
+            content: args.element.cloneNode(true)
+        };
         __classPrivateFieldGet(this, _template_templates, "f").push(tem);
         if (args.remove === true)
             args.element.remove();
@@ -176,7 +171,7 @@ class template {
         for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
             if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === args.tuID) {
                 if (args.element instanceof HTMLElement) {
-                    var oldContent = __classPrivateFieldGet(this, _template_templates, "f")[i].content;
+                    const oldContent = __classPrivateFieldGet(this, _template_templates, "f")[i].content;
                     __classPrivateFieldGet(this, _template_templates, "f")[i].content = args.element;
                     return oldContent;
                 }
@@ -216,7 +211,12 @@ class template {
     getInstance(tuID) {
     }
 }
-_template_dynamic = new WeakMap(), _template_templates = new WeakMap(), _template_instances = new WeakMap(), _template_observer = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
+_template_options = new WeakMap(), _template_templates = new WeakMap(), _template_instances_1 = new WeakMap(), _template_observer = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap(), _template_instances = new WeakSet(), _template_getTemplateObject = function _template_getTemplateObject(tuID) {
+    for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
+        if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === tuID)
+            return __classPrivateFieldGet(this, _template_templates, "f")[i];
+    return null;
+};
 
 
 /***/ }),
@@ -231,138 +231,122 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-function E(argument, type, value) {
-    if (argument === undefined)
-        throw new Error("An error occured.");
-    else
-        throw new Error(`Argument '${argument}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
-}
-function EE(message) { throw new Error(message); }
-function toHTML(HTML) {
-    const ele = document.createElement("div");
-    var returnA = [];
-    ele.innerHTML = HTML;
-    if (HTML === "" || typeof HTML != "string")
-        E("HTML", "string", HTML);
-    for (let i = 0; i < ele.childNodes.length; i++)
-        returnA[i] = ele.childNodes[i];
-    return returnA;
-}
-function toHTMLString(HTML) {
-    const ele = document.createElement("div");
-    ele.appendChild(HTML);
-    return ele.innerHTML;
-}
-function getInnerNodes(el) {
-    var nodes = [];
-    for (let i = 0; i < el.childNodes.length; i++)
-        nodes[i] = el.childNodes[i].cloneNode(true);
-    return nodes;
-}
-function repeat(item, count) {
-    if (typeof count != "number" || count < 1)
-        E("count", "number smaller than 1", count);
-    var arr = [];
-    arr[count - 1] = " ";
-    return arr.fill(item, 0, count);
-}
-function randoma2z029(length) {
-    var s = "";
-    for (let i = 0; i < length; i++) {
-        let r = Math.floor(Math.random() * 36);
-        if (r < 10)
-            s += r;
-        else
-            s += String.fromCharCode(r + 87);
-    }
-    return s;
-}
-function checkTUID(id) {
-    const preservedIDs = ["annotation-xml", "color-profile", "font-face", "font-face-src", "font-face-uri", "font-face-format", "font-face-name", "missing-glyph"];
-    var isValid = !!id.match("^[a-z0-9][a-z0-9-]+[a-z0-9]$");
-    if (!isValid)
-        console.warn(`The specified tuID is invalid: ${id}. Dynamic is going to generate one instead.`);
-    if (preservedIDs.indexOf(id) != -1) {
-        isValid = false;
-        console.warn(`The specified tuID is one of the preserved element names: ${id}. Dynamic is going to generate one instead. See https://html.spec.whatwg.org/#valid-custom-element-name for help.`);
-    }
-    return isValid;
-}
-function generateTUID() {
-    return `${randoma2z029(11)}-${randoma2z029(17)}`;
-}
-function constantize(obj) {
-    Object.freeze(obj);
-    for (let i = 0; i < Object.keys(obj).length; i++)
-        if (typeof obj[Object.keys(obj)[i]] == "object")
-            constantize(obj[Object.keys(obj)[i]]);
-}
-function render(HTML, element, insertAfter, append, disableDF) {
-    if (element.parentElement === null)
-        EE("cannot render by '<html>' element, since it's root of document.");
-    var html = [];
-    if (typeof HTML == "string")
-        html = toHTML(HTML);
-    else if (HTML instanceof HTMLElement || HTML instanceof Node)
-        html[0] = HTML.cloneNode(true);
-    else if (HTML instanceof HTMLCollection || HTML instanceof NodeList)
-        for (let i = 0; i < HTML.length; i++)
-            html[i] = HTML.item(i).cloneNode(true);
-    else
-        html = HTML;
-    const Rhtml = [...html].reverse(), parent = element.parentElement;
-    if (append === true)
-        for (let i = 0; i < html.length; i++)
-            element.append(html[i]);
-    else if (append === false)
-        for (let i = 0; i < Rhtml.length; i++)
-            element.prepend(Rhtml[i]);
-    else if (insertAfter === true) {
-        if (!element.nextSibling)
-            for (let i = 0; i < Rhtml.length; i++)
-                parent.append(Rhtml[i]);
-        else
-            for (let i = 0; i < Rhtml.length; i++)
-                parent.insertBefore(Rhtml[i], element.nextSibling);
-    }
-    else if (insertAfter === false)
-        for (let i = 0; i < html.length; i++)
-            parent.insertBefore(html[i], element);
-    else
-        for (let i = 0; i < html.length; i++)
-            element.append(html[i]);
-    return html;
-}
-function generateDFID() {
-    return `dfid-${randoma2z029(24)}`;
-}
-function checkDFID(id) {
-    return true;
-}
-function hatch(element, remove) {
-    const par = element.parentElement, children = Array.from(element.childNodes);
-    for (let i = 0; i < children.length; i++)
-        par.insertBefore(children[i], element);
-    if (remove === true)
-        element.remove();
-    return children;
-}
-const utils = {
-    E: E,
-    EE: EE,
-    toHTML: toHTML,
-    toHTMLString: toHTMLString,
-    getInnerNodes: getInnerNodes,
-    repeat: repeat,
-    randoma2z029: randoma2z029,
-    checkTUID: checkTUID,
-    generateTUID: generateTUID,
-    constantize: constantize,
-    render: render,
-    generateDFID: generateDFID,
-    hatch: hatch
-};
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (utils);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((() => {
+    return {
+        E(argument, type, value) {
+            if (argument === undefined)
+                throw new Error("An error occured.");
+            else
+                throw new Error(`Argument '${argument}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
+        },
+        EE(message) { throw new Error(message); },
+        toHTML(HTML) {
+            const ele = document.createElement("div");
+            var returnA = [];
+            ele.innerHTML = HTML;
+            if (HTML === "" || typeof HTML != "string")
+                this.E("HTML", "string", HTML);
+            for (let i = 0; i < ele.childNodes.length; i++)
+                returnA[i] = ele.childNodes[i];
+            return returnA;
+        },
+        toHTMLString(HTML) {
+            const ele = document.createElement("div");
+            ele.appendChild(HTML);
+            return ele.innerHTML;
+        },
+        getInnerNodes(el) {
+            var nodes = [];
+            for (let i = 0; i < el.childNodes.length; i++)
+                nodes[i] = el.childNodes[i].cloneNode(true);
+            return nodes;
+        },
+        repeat(item, count) {
+            if (typeof count != "number" || count < 1)
+                this.E("count", "number smaller than 1", count);
+            var arr = [];
+            arr[count - 1] = " ";
+            return arr.fill(item, 0, count);
+        },
+        randoma2z029(length) {
+            var s = "";
+            for (let i = 0; i < length; i++) {
+                let r = Math.floor(Math.random() * 36);
+                if (r < 10)
+                    s += r;
+                else
+                    s += String.fromCharCode(r + 87);
+            }
+            return s;
+        },
+        checkTUID(id) {
+            const preservedIDs = ["annotation-xml", "color-profile", "font-face", "font-face-src", "font-face-uri", "font-face-format", "font-face-name", "missing-glyph"];
+            var isValid = !!id.match("^[a-z0-9][a-z0-9-]+[a-z0-9]$");
+            if (preservedIDs.indexOf(id) != -1)
+                this.EE(`The specified tuID is one of the preserved element names: ${id}. See https://html.spec.whatwg.org/#valid-custom-element-name for help.`);
+            return isValid;
+        },
+        generateTUID() {
+            return `${this.randoma2z029(11)}-${this.randoma2z029(17)}`;
+        },
+        constantize(obj) {
+            Object.freeze(obj);
+            for (let i = 0; i < Object.keys(obj).length; i++)
+                if (typeof obj[Object.keys(obj)[i]] == "object")
+                    this.constantize(obj[Object.keys(obj)[i]]);
+        },
+        render(HTML, element, insertAfter, append, disableDF) {
+            if (element.parentElement === null)
+                this.EE("cannot render by '<html>' element, since it's root of document.");
+            var html = [];
+            if (typeof HTML == "string")
+                html = this.toHTML(HTML);
+            else if (HTML instanceof HTMLElement || HTML instanceof Node)
+                html[0] = HTML.cloneNode(true);
+            else if (HTML instanceof HTMLCollection || HTML instanceof NodeList)
+                for (let i = 0; i < HTML.length; i++)
+                    html[i] = HTML.item(i).cloneNode(true);
+            else
+                html = HTML;
+            const Rhtml = [...html].reverse(), parent = element.parentElement;
+            if (append === true)
+                for (let i = 0; i < html.length; i++)
+                    element.append(html[i]);
+            else if (append === false)
+                for (let i = 0; i < Rhtml.length; i++)
+                    element.prepend(Rhtml[i]);
+            else if (insertAfter === true) {
+                if (!element.nextSibling)
+                    for (let i = 0; i < Rhtml.length; i++)
+                        parent.append(Rhtml[i]);
+                else
+                    for (let i = 0; i < Rhtml.length; i++)
+                        parent.insertBefore(Rhtml[i], element.nextSibling);
+            }
+            else if (insertAfter === false)
+                for (let i = 0; i < html.length; i++)
+                    parent.insertBefore(html[i], element);
+            else
+                for (let i = 0; i < html.length; i++)
+                    element.append(html[i]);
+            return html;
+        },
+        generateDFID() {
+            return `dfid-${this.randoma2z029(24)}`;
+        },
+        checkDFID(id) {
+            return true;
+        },
+        hatch(element, remove) {
+            const par = element.parentElement, children = Array.from(element.childNodes);
+            for (let i = 0; i < children.length; i++)
+                par.insertBefore(children[i], element);
+            if (remove === true)
+                element.remove();
+            return children;
+        }
+    };
+})());
 
 
 /***/ })
@@ -433,17 +417,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _template__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./template */ "./src/template.ts");
 /* harmony import */ var _dataFlow__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dataFlow */ "./src/dataFlow.ts");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./src/utils.ts");
+var __classPrivateFieldSet = (undefined && undefined.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _Dynamic_options;
 
 
 
 console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of dynamic.js, which is not suitable for production use.");
 class Dynamic {
     constructor(options) {
-        this.options = undefined;
+        _Dynamic_options.set(this, void 0);
         console.warn("Creating new Dynamic instance with options", options);
-        this.options = options;
-        this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](this);
-        this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](this);
+        __classPrivateFieldSet(this, _Dynamic_options, options, "f");
+        this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"));
+        this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"));
     }
     repeat(args) {
         return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].repeat(args.item, args.count);
@@ -463,7 +459,11 @@ class Dynamic {
     hatch(args) {
         return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].hatch(args.element, args.remove);
     }
+    getOptions() {
+        return __classPrivateFieldGet(this, _Dynamic_options, "f");
+    }
 }
+_Dynamic_options = new WeakMap();
 _utils__WEBPACK_IMPORTED_MODULE_2__["default"].constantize(Dynamic);
 const w1ndow = window;
 w1ndow.Dynamic = Dynamic;

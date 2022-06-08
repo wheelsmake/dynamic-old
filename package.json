@@ -1,6 +1,6 @@
 {
     "name": "dynamic",
-    "version": "0.6.4",
+    "version": "0.8.1",
     "description": "A JavaScript library for creating dynamic webpage.",
     "main": "./dist/dynamic.js",
     "private": true,
@@ -9,7 +9,8 @@
         "library",
         "framework",
         "typescript",
-        "template-engine"
+        "template-engine",
+        "js-framework"
     ],
     "author": "LJM12914",
     "license": "Apache 2.0",

@@ -5,7 +5,7 @@
 
 dynamic 实例在创建时**不会主动接管任何 DOM 元素**，也**不会生成 vDOM**。
 
-dynamic 只对自己对 DOM 做的事进行优化，程序员大可以写 `for` 循环应用模板。
+dynamic 只对自己对 DOM 做的事进行优化，开发者大可以写 `for` 循环应用模板。
 
 - 正确的方案是调用 dynamic 的[重复 DOM 操作优化](#重复 DOM 操作优化)方法。
 
@@ -62,16 +62,16 @@ const dy = new Dynamic(options? :object);
 
 dynamic 会默认转换文档中所有的 `<template>` 元素为 dynamic 模板。
 
-如果一个 `<template>` 具有 `dynamic` attribute，那么它将会被 dynamic 声明式注册，并**从文档中移除**。
+如果一个 `<template>` 具有 `dynamic` attribute，那么它将会在变为模板后被 dynamic **从文档中移除**。
 
 如果一个 `<template>` 具有 `nodynamic` attribute，那么它将会被 dynamic 忽略。
 
-如果一个 `<template>` 不具有以上两个 attribute，那么它将会被 dynamic 声明式注册，但不会被移除。
+如果一个 `<template>` 不具有以上两个 attribute，那么它将会被 dynamic 声明式注册。
 
-- dynamic 会监听DOM变化。运行时释放 `<template>` 元素也会被 dyanmic 处理。
+- dynamic 会监听DOM变化。运行时释放 `<template>` 元素也会被 dynamic 处理。
 - 使用 `tuid` attribute 可自定义 `<template>` 元素被注册为模板时的 `tuID`。无效的 `tuid` attribute 会使 dynamic 自己生成一个。
 
-- 从 `<template>` 元素注册存在弊端：dynamic 缺少对 shadow DOM 的支持，所以所有 `<template>` 元素转换为模板后都会**丢失其 shadow DOM 状态**，其内容被一个顶级 `<div>` 元素包裹。这是写死在 dynamic 里的逻辑。
+- 从 `<template>` 元素注册存在弊端：dynamic 缺少对 shadow DOM 的支持，所以所有 `<template>` 元素转换为模板后都会**丢失其 shadow DOM 状态**，其内容被一个顶级 `<div>` 元素包裹。
 
 ### 从命令
 
@@ -94,6 +94,10 @@ dy.template.register({
 该方法返回模板的 ID `tuID`，用于使用该模板。
 
 - 当已存在相同 `tuID` 时，dynamic 不会默默地用新的 `tuID` 代替，而是会直接报错。如果设置了[碰撞检测](#enableAntiClash)，那么 dynamic 会调用 `clashHandler` 方法。
+
+### 特别提示
+
+模板注册时使用了 `Node.cloneNode()` 方法对传入的元素进行拷贝，这会导致该元素及其后代元素的**通过 JavaScript 绑定的事件被完全移除**。在不远的未来可以考虑对此缺陷进行补偿（TODO）。
 
 ## 使用一个模板
 
@@ -238,16 +242,20 @@ dy.template.getTemplates() :object[];
 
 ### 模板变量（TODO）
 
-原生 API 中，`<slot>` 元素是用于插入变量的占位符，但其兼容性弱。在 dynamic 中，可以通过 `<slot>` 在模板中插入变量，通过 dynamic 的 polyfill，其在功能与原生几乎相同的同时增强了兼容。
+在 dynamic 中，可以通过 `slot` 元素在模板中插入变量，通过 dynamic ，其在功能与原生几乎相同的同时增强了兼容。
 
-- 模板变量不是数据节点，与[管理数据流](#管理数据流)中的数据节点不是同一个概念。模板变量被设计为一次性的替换。
+- 模板变量不是数据节点，与[数据流管理](#数据流管理)中的数据节点不是同一个概念。模板变量被设计为一次性的替换。
+- dynamic 处理模板变量的时机是每一次渲染时，所以使用 `getContent()` 方法仍可以取到原封不动的传入 DOM。
+- 为避免 XSS，需要在 `<slot>` 中特别声明 `html` attribute 才能在模板变量中插入 HTML。插入的 HTML 中的 `<slot>` 无论如何都不会被转换。
+- `<slot>` 元素必须拥有 `name` attribute，否则会被直接就地转换为文本节点。拥有相同 `name` attribute 的 `<slot>` 共享同一内容。
+- `<slot>` 元素若含有内部内容（如上文的 `#slot2`），则其将成为缺省值，在没有提供该 `<slot>` 的变量值而使用模板时将会使用该值。
 
 下面演示一个例子：
 
 ```html
 <template tuid="my-template">
     <div>
-        <slot name="slot1"></slot>
+        <slot name="slot1" html></slot>
         <p>............<slot name="slot2">default content</slot>.....</p>
     </div>
 </template>
@@ -260,7 +268,7 @@ dy.template.render({
     tuID: "my-template",
     element: dy.e("#targetElement"),
     slots: {
-        "slot1": "slot1's content",
+        "slot1": "<span style='color: red;'>slot1's red HTML content</span>",
         "slot2": "slot2's content"
     },
     removeOuterElement: true,
@@ -269,10 +277,6 @@ dy.template.render({
     disableDF: false
 });
 ```
-
-- `slot` 元素必须拥有 `name` 属性，否则会被直接就地转换为文本节点。
-- `slot` 元素若含有内部内容（如上文的 `#slot2`），则其将成为缺省值，在没有提供该 `slot` 的变量值而使用模板时将会使用该值。
-- `slot` 元素在渲染前均会被转换为文本节点。如需插入 HTML 元素，则建议事后使用直接渲染方法。
 
 ### 模板追踪（TODO）
 
@@ -375,9 +379,11 @@ dy.dataFlow.new(element :HTMLElement) :void;
 
 # 其他工具
 
+如果你选择相信手动的力量或愿意接受 dynamic 提供的优化，那么可以尝试使用这些工具。
+
 ## 直接渲染
 
-向文档中渲染任意HTML。
+向文档中渲染任意 HTML。小心 XSS。
 
 ```typescript
 dy.render({
@@ -398,9 +404,7 @@ dy.render({
 
 `insertAfter` 和 `append` 的共同缺省值是：在目标元素后插入 HTML。
 
-其实可以用原生 API 直接做到这一点，为了节省一点键盘耐久度搞了这个组合方法。
-
-该方法返回一个由 Node 组成的 Array，包括传入的HTML字符串中的所有顶级元素。
+该方法返回一个由 Node 组成的 Array，包括传入的 HTML 字符串中的所有顶级元素。
 
 ## 重复填充
 
@@ -418,23 +422,36 @@ dy.repeat({
 | `item`  |    填充对象     |
 | `count` | 次数，必须大于0 |
 
-该方法是 `Array.fill()` 的易用版。
-
 该方法返回一个 Array。
 
 ## 获取元素
 
-是 `document.querySelectorAll()` 的易用版。
+> 从 [`luery`](https://github.com/ljm12914/luery) 处直接复制粘贴的代码。
 
 ```typescript
-dy.e(s :string) :Node[] | Node;
+dy.e(s :string, scope? :HTMLElement | Document) :Node[] | Node;
 ```
 
-| 参数 |    描述    |
-| :--: | :--------: |
-| `s`  | css 选择器 |
+|  参数   |                     描述                      |
+| :-----: | :-------------------------------------------: |
+|   `s`   |                  css 选择器                   |
+| `scope` | `querySelector` 的作用域，不填默认 `document` |
 
 仅当传入选择器的最终选择器为 ID 选择器（即 `#` ）且获取到元素时返回 `Node` 类型单个元素，否则返回  `Node[]` 类型。
+
+- 这是 dynamic 里唯一一个没有单对象参数化的多参数方法。
+
+## 字符串转 HTML
+
+从字符串获取等价 HTML DOM：
+
+```typescript
+dy.toHTML(HTML :string) :Node[];
+```
+
+|  参数  |       描述       |
+| :----: | :--------------: |
+| `HTML` | 有效 HTML 字符串 |
 
 ## DOM 脱壳
 
@@ -459,35 +476,29 @@ dy.hatch({
 - 浏览器很讨厌这种代码：
 
 ```typescript
-const myelement = dy.e("#myelement");
-for(let i = 0; i < 100; i++){
+for(let i = 0; i < 1000; i++){
     dy.template.render({
         tuID: "my-tuid",
-    	element: myelement,
+    	element: dy.e("#myelement"),
     	append: true
     })
 }
 ```
 
-任何对 DOM 的操作都是比较耗时的，特别是那些会触发重排 / 重绘的操作。对此 dynamic 提供了一个优化方法：
+任何对已渲染 DOM 的操作都是比较耗时的，特别是那些会触发重排 / 重绘的操作。对此 dynamic 提供了一个优化方法，可以将很多 DOM 操作：
 
 ```typescript
-dy.v({
-    processor: ()=>{
-        
-    },
-    receiver: ()=>{
-        
-    }
+dy.compose({
+
 }) :Node[];
 ```
 
-|   参数    |            描述            |
-| :-------: | :------------------------: |
-| `element` |           父元素           |
-| `remove`  | 是否在操作完成后删除父元素 |
+| 参数 | 描述 |
+| :--: | :--: |
+|  ``  |      |
+|  ``  |      |
 
-# 实例配置
+# 实例配置（TODO）
 
 在创建实例时传入配置。
 
@@ -497,12 +508,14 @@ const dy = new Dynamic(options);
 
 下面是对 `options` 对象的有效属性的描述，注意所有属性都是**可选的**。无效的属性将被 dynamic 忽略。
 
-|               有效属性                |     类型      |               描述               |
-| :-----------------------------------: | :-----------: | :------------------------------: |
-|              `rootScope`              | `HTMLElement` |   创建实例时顺便指定一个作用域   |
-| [`enableAntiClash`](#enableAntiClash) |   `boolean`   |         是否开启碰撞检测         |
-|            `clashHandler`             |  `Function`   |           碰撞处理方法           |
-|          `multiNextDataNode`          |   `boolean`   | 是否允许数据节点存在多个下级节点 |
+|                   有效属性                    |      类型       |               描述               |
+| :-------------------------------------------: | :-------------: | :------------------------------: |
+|                  `rootScope`                  |  `HTMLElement`  |   创建实例时顺便指定一个作用域   |
+|     [`enableAntiClash`](#enableAntiClash)     |    `boolean`    |         是否开启碰撞检测         |
+|                `clashHandler`                 |   `Function`    |           碰撞处理方法           |
+|   [`multiNextDataNode`](#multiNextDataNode)   |    `boolean`    | 是否允许数据节点存在多个下级节点 |
+| [`renderSecurityLevel`](#renderSecurityLevel) | `0 | 1 | 2 | 3` |        渲染 HTML 安全级别        |
+|    [`bannedTagName`](#renderSecurityLevel)    |   `string[]`    |       禁止渲染的 HTML 标签       |
 
 ## enableAntiClash
 
@@ -511,26 +524,46 @@ const dy = new Dynamic(options);
 将 `enableAntiClash` 设为 `true` 即可打开。此时也必须设置 `clashHandler` 方法，dynamic 的调用参数如下：
 
 ```typescript
-clashHandler(type :string, clasher :object, clashee :object) :string;
+clashHandler(type :string, args :object, clashee :object) :string;
 ```
 
 |   参数    |                    描述                    |
 | :-------: | :----------------------------------------: |
 |  `type`   | `tuID`：模板的碰撞；`dfID`：数据节点的碰撞 |
-| `clasher` |       碰撞的实例中创建较**晚**的那个       |
-| `clashee` |       碰撞的实例中创建较**早**的那个       |
+|  `args`   |        调用注册方法时传入的参数对象        |
+| `clashee` |              原有的同 ID 实例              |
 
-该方法期望的返回值是有效的 `tuID` 或 `dfID`。dynamic 仍会对 `tuID` 或 `dfID` 的有效性做检查，若无效，则抛出异常。
+该方法期望的返回值是有效的 `tuID` 或 `dfID`。dynamic 仍会对 `tuID` 或 `dfID` 的有效性做检查，若无效，则抛出异常。若再次碰撞，则再次调用该方法，直至成功。
 
 碰撞检测会消耗一些性能，在每一次创建新实例时进行 ID 检查。
 
 ## multiNextDataNode
 
+> 该计划即将被弃用，太没意思了。
+
 dynamic 默认只允许数据节点存在一个下级节点，因为多下级节点的情况并不是经常发生，并且会大量耗费性能。如果所有数据节点都只存在一个下级节点，那么 dynamic 就会使用非典型的较高效的网络图对数据流进行处理。
 
 - 没有说不允许数据节点存在多个上级节点，不然数据网变数据链了，多没意思。
 
+## renderSecurityLevel
 
+该参数默认值为 2 。
+
+通过配置该参数来限制 dynamic 渲染危险的 HTML DOM，以免因疏忽大意而造成许多问题。
+
+0. 可渲染任何 DOM（不推荐！）。
+1. 禁止渲染 `<script>` 元素。
+2. 在 1 级基础上禁止渲染 `<html>` `<body>` `<head>` 元素。
+3. 在 2 级基础上禁止渲染一切带有事件绑定 attribute 的元素。
+
+若要自定义禁止渲染的元素**标签**，可以配置 `bannedTagName`，示例：
+
+```json
+{"bannedTagName": [
+	"style",
+    "link"
+]}
+```
 
 # 补充说明
 
@@ -555,10 +588,10 @@ dynamic 在付出抛弃一些优点的代价后，做到了以下特性：
 
 1. 仅在 HTML 中允许部分声明式编程，其余绝大部分使用命令式编程。
    - 这让我们可以在事件处理到需要调用 dynamic 的时候正确地使用 dynamic，而不是对框架用 hook 函数。
-   - 这损失了什么？部分喜好声明式编程的程序员的效率。但是程序员的思维不应该就是命令式的吗？为了提高效率或让开发者读起来舒服而把大量权力交给框架内部，然后不停地翻查文档找它会自己干些什么，我不觉得这是一件聪明事。
+   - 这损失了什么？喜好声明式编程的开发者的效率。但是开发者的思维不应该就是命令式的吗？为了提高效率或让开发者读起来舒服而把大量权力交给框架内部，然后不停地翻查文档找它会自己干些什么，我不觉得这是一件聪明事。
    - 如果说 jQuery 是需要全过程编程的工具——就像灶台上的烧水壶，框架是近乎全过程的自动化工具——就像茶水间的直饮水机，那么 dynamic 就是一个需要且仅需要在必要的时候编程的工具——就像桌子上的电热水壶。jQuery 需要一刻不停的参与；框架只需要打开电源、接好水管；dynamic 需要在框架的基础上再从很多个按钮里找出需要的功能，之后无需参与。
 2. 抛弃自定义语法，尽可能贴近原生语法与原生 API。
-   - 这让学过 JavaScript 和现代浏览器原生 API 的程序员可以快速上手 dynamic。
+   - 这让学过 JavaScript 和现代浏览器原生 API 的开发者可以快速上手 dynamic。
    - 这损失了一些编程效率，但在可接受的范围内，因为 dynamic 普遍采用命令式编程。
 3. 使用节点连接的方式控制数据流。
    - 这存在一定的性能问题。

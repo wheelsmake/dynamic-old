@@ -1,0 +1,19 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0,shrink-to-fit=no" />
+        <title>simple Todo</title>
+    </head>
+    <body>
+        <div id="root">
+            
+        </div>
+        <template dynamic tuid="todo-main">
+            <div><label><input type="checkbox" />finish</label></div>
+            <div><slot name="todo-content">Empty Content</slot></div>
+        </template>
+    </body>
+    <script src="../../dist/dynamic.min.js"></script>
+    <script src="main.js"></script>
+</html>

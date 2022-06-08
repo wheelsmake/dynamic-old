@@ -2,7 +2,9 @@
  * ©2022 LJM12914. https://github.com/openink/dynamic
  * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
 */
-type anyObject = Record<string, any>;
+import template from "./template";
+import dataFlow from "./dataFlow";
+import utils from "./utils";
 interface renderArgs{
     HTML :string | HTMLElement | HTMLCollection | Node | NodeList | Node[];
     element :HTMLElement;
@@ -18,34 +20,39 @@ interface hatchArgs{
     element :HTMLElement;
     remove? :boolean;
 }
-import template from "./template";
-import dataFlow from "./dataFlow";
-import utils from "./utils";
 console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of dynamic.js, which is not suitable for production use.");
 class Dynamic{
+    #options :dynamicOptions;
     template :template;
     dataFlow :dataFlow;
-    options :anyObject | undefined = undefined;
-    constructor(options? :anyObject){
+    utils;
+    constructor(options? :dynamicOptions){
         console.warn("Creating new Dynamic instance with options", options);
-        this.options = options;
-        this.template = new template(this);
-        this.dataFlow = new dataFlow(this);
+        this.#options = options;
+        this.template = new template(this.#options);
+        this.dataFlow = new dataFlow(this.#options);
+        this.utils = utils;
     }
-    repeat(args :repeatArgs) :any[]{
-        return utils.repeat(args.item, args.count);
+    getOptions() :dynamicOptions{
+        return this.#options;
     }
     render(args :renderArgs) :Node[]{
         return utils.render(args.HTML, args.element, args.insertAfter, args.append, args.disableDF);
     }
-    e(s :string) :Node[] | Node{
-        let a :NodeList = document.querySelectorAll(s);
-        if(!a.length) return [];
-        if(a.length == 1 && s.match(/^.*#[^\s]*$/)) return a[0];//note:当一个页面存在相同ID元素时不会走这里，而会返回数组，因为说好了是querySelectorAll了并且本来就不应该有重复ID
-        else return Array.from(a);
+    repeat(args :repeatArgs) :any[]{
+        return utils.repeat(args.item, args.count);
+    }
+    e(s :string, scope? :HTMLElement | Document) :Node[] | Node{
+        return utils.e(s, scope);
+    }
+    toHTML(HTML :string) :Node[]{
+        return utils.toHTML(HTML);
     }
     hatch(args :hatchArgs) :Node[]{
         return utils.hatch(args.element, args.remove);
+    }
+    compose(){
+        //todo:
     }
 }
 utils.constantize(Dynamic);
