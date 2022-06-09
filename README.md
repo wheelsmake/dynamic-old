@@ -632,7 +632,7 @@ dynamic 在渲染每一个模板后都会记录下有关数据，但是这些数
 
 # 补充说明
 
-### 可以浏览 [`tests/`](tree/main/tests) 和 [`sample_projects/`](tree/main/sample_projects) 目录中的示例项目！
+### 可以浏览 [`tests/`](tests) 和 [`sample_projects/`](sample_projects) 目录中的示例项目！
 
 ## 开发背景与设计意图
 
