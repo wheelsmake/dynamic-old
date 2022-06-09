@@ -112,7 +112,7 @@ export default class template{
             ]
         }];*/
     }
-    #parseSlots(target :HTMLElement, argSlots? :anyObject) :void{
+    #parseSlots = (target :HTMLElement, argSlots? :anyObject) :void=>{
         const slots = utils.e("slot", target) as HTMLSlotElement[]; //用非id的css选择器就一定返回Node[]
         //console.log(slots);
         if(argSlots !== undefined && slots.length != 0) for(let i = 0; i < slots.length; i++){ //用一个attribute比遍整个args.slot
@@ -134,7 +134,7 @@ export default class template{
         return null;
     }
     //observer回调方法
-    #observerCB = (resultList :MutationRecord[], observer :MutationObserver)=>{
+    #observerCB = (resultList :MutationRecord[], observer :MutationObserver) :void=>{
         for(let i = 0; i < resultList.length; i++) for(let j = 0; j < resultList[i].addedNodes.length; j++){
             const ele = resultList[i].addedNodes[j];
             if(!(ele instanceof HTMLElement)) return; //不处理文本注释节点

@@ -6,24 +6,33 @@ import template from "./template";
 import utils from "./utils";
 export default class dataFlow{
     #options :dynamicOptions;
-    #dfScopes :dfScope[] = [];
+    #dfScopes :HTMLElement[] = [];
     #dataNodes :dataNode[] = [];
     #observer :MutationObserver;
-    constructor(options :dynamicOptions){
+    #_ :anyObject = {};
+    constructor(options :dynamicOptions, _ :anyObject){
         this.#options = options;
+        this.#_ = _;
         this.#observer = new MutationObserver(this.#observerCB);
         this.#observer.observe(document.body,{
             childList: true,
             subtree: true
         });
     }
-    new(){
-        //todo:新建作用域
+    new(element :HTMLElement) :void{
+        //排除已经是目前作用域或目前作用域子元素的新增
+        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(element, this.#dfScopes[i]) || element === this.#dfScopes[i]) return;
+        //排除原数组中是新增作用域子元素的元素
+        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(this.#dfScopes[i], element)) utils.precisePop(this.#dfScopes[i], this.#dfScopes);
+        this.#dfScopes.push(element);
     }
-    /*generateDFID(){
-        return utils.generateDFID();
-    }*/
-    #observerCB = (resultList :MutationRecord[], observer :MutationObserver)=>{
+    createDataNode(){
+        
+    }
+    connect(node1 :dataNode, node2 :dataNode){
+
+    }
+    #observerCB = (resultList :MutationRecord[], observer :MutationObserver) :void=>{
         //seize:
     }
 }

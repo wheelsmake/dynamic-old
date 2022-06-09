@@ -10,7 +10,7 @@
             
         </div>
         <template dynamic tuid="todo-main">
-            <div><label><input type="checkbox" />finish</label></div>
+            <div><label><input type="checkbox" onclick="switchState()" />finish</label></div>
             <div><slot name="todo-content">Empty Content</slot></div>
         </template>
     </body>

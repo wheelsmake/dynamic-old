@@ -30,7 +30,7 @@ const dy = new Dynamic(options? :object);
 
 对一般的页面来说，创建一个实例即可。
 
-# 复用HTML
+# 复用 HTML
 
 ## 关于 `tuID`
 
@@ -328,22 +328,6 @@ dy.template.getInstance(tuID :string) :object[];
 
 # 数据流管理（TODO）
 
-## dynamic 的数据流管理
-
-dynamic 使用节点 + 网结构来管理数据流。
-
-每个数据节点都可以有 `上游节点`（`prevNodes[]`），但是只有 JavaScript 中的数据节点可以有 `下游节点`（`nextNodes[]`），因为 HTML 中的数据节点不能被侦测。因此我们将 HTML 中的数据节点也称为 `导出节点`。
-
-数据节点可以被插入到任何地方，并且可以包含任何 JavaScript 对象。在目前的 dynamic 中，数据节点内容是**动态类型**的。以后可能会更改为**动静混合类型**以提供类型检测功能。
-
-## 关于 `dfID`
-
-每个节点都有独一无二的 ID，称为 `dfID`。有效 `dfID` 是长度不小于 8 位的字符串，前 5 位为固定字符串 `dfid-`，后为**小写字母或数字**。
-
-此规范的目的是能将每一个 `dfID` 放入 HTML 文档的任意部位，包括：标签名、属性名、属性值、内容。
-
-当 dynamic 自动生成 `dfID` 时，其长度总是为 29 字符，因为 dynamic 的开发者是 LJM1**29**14。总共可能生成 2.25e+37 个 `dfID`，基本不用担心碰撞，并有[碰撞检测](#enableAntiClash)功能（需在 `options` 参数中设置）。
-
 ## 新建作用域
 
 数据流管理仅在作用域内有效，这样做一是为了防止不同示例的作用域混淆（不过由于 `dfID` 难以重复，即使多个实例有相同的作用域也几乎完全不会造成数据问题，只是性能会下降，并且开发者会看懵），二是减少不必要的性能开销。
@@ -360,13 +344,72 @@ dy.dataFlow.new(element :HTMLElement) :void;
 
 声明后，dynamic 才会识别并转换其中的所有有效数据节点。
 
+## 数据节点
+
+dynamic 使用节点 + 网结构来管理数据流。
+
+dynamic 的数据节点使用 `Proxy` 实现。每个数据节点都可以有 `上游节点`（`prevNodes[]`），但是只有 JavaScript 中的数据节点可以有 `下游节点`（`nextNodes[]`），因为 HTML 中的数据节点不能被侦测。因此我们将 HTML 中的数据节点也称为 `导出节点`。
+
+数据节点可以被插入到任何地方，并且可以包含任何 JavaScript 对象。在目前的 dynamic 中，数据节点内容是**动态类型**的。以后可能会更改为**动静混合类型**以提供类型检测功能。
+
+引语中已经将数据节点分为 `导出节点` 和 `非导出节点` 了。可以将数据节点想象为一个容器。
+
+```mermaid
+graph LR
+Proxy=="get()"==>nextNodes
+getProcessor--"get()"-->Proxy
+objectStore--"get()"-->getProcessor
+prevNodes=="set()"==>Proxy
+Proxy--"set()"-->setProcessor
+setProcessor--"set()"-->objectStore
+setProcessor--recordState-->stateStore
+stateStore--recoverState-->setProcessor
+箭头代表数据的流动方向
+```
+
+数据节点由对象存储区 `ObjectStore`、代理 `Proxy`、处理方法 `processor`、节点信息和状态存储区 `stateStore` 组成。
+
+## 创建数据节点
+
+```typescript
+dy.dataFlow.createDataNode({
+    objectStore :any,
+    setProcessor? :Function,
+    getProcessor? :Function,
+    alias? :string,
+    tag? :string[]
+});
+```
+
+|      参数      |                             描述                             |
+| :------------: | :----------------------------------------------------------: |
+| `objectStore`  | 真正的数据所在的地方，可以直接是数据、是变量或者是某个对象的属性 |
+| `setProcessor` |                  设置数据时对数据的处理方法                  |
+| `getProcessor` |                  读取数据时对数据的处理方法                  |
+|    `alias`     |                   节点的别名，用于创建捷径                   |
+|     `tag`      |                                                              |
+
+- 注意这里的 `get` `set` 是相对于**数据本身**来说的。可以参见上面的流程图。
+
+## 关于 `dfID`
+
+每个节点都有独一无二的 ID，称为 `dfID`。有效 `dfID` 是长度不小于 8 位的字符串，前 5 位为固定字符串 `dfid-`，后为**小写字母或数字**。
+
+此规范的目的是能将每一个 `dfID` 放入 HTML 文档的任意部位，包括：标签名、属性名、属性值、内容。
+
+当 dynamic 自动生成 `dfID` 时，其长度总是为 29 字符，因为 dynamic 的开发者是 LJM1**29**14。总共可能生成 2.25e+37 个 `dfID`，基本不用担心碰撞，并有[碰撞检测](#enableAntiClash)功能（需在 `options` 参数中设置）。
+
+
+
+
+
+
+
 ## 利用数据流简化操作
-
-
 
 在之前已经出现过一些声明式指令：`<template>` 的 `tuID` 和 `dynamic`。
 
-### 动态替换attribute
+### 动态替换 attribute
 
 ```html
 <div :id="dfID"></div>
@@ -400,7 +443,7 @@ dy.dataFlow.new(element :HTMLElement) :void;
 
 ```typescript
 dy.render({
-    HTML :string | HTMLElement | HTMLCollection | Node | NodeList | Node[],
+    HTML :string | HTMLElement | HTMLCollection | HTMLElement[] | Node | NodeList | Node[],
     element :HTMLElement,
     insertAfter? :boolean,
     append? :boolean,
@@ -410,7 +453,7 @@ dy.render({
 
 |     参数      |                             描述                             |
 | :-----------: | :----------------------------------------------------------: |
-|    `HTML`     | 要渲染的 HTML，可以是上文提到的所有类型，方法会自动将其转换  |
+|    `HTML`     | 要渲染的 HTML，可以是上面代码中提到的所有类型，方法会自动将其转换 |
 |   `element`   |                           目标元素                           |
 | `insertAfter` | `true`：在目标元素后插入 HTML；`false`：在目标元素前插入 HTML |
 |   `append`    | `true`：在目标元素中的最后插入 HTML；`false`：在目标元素中的最前插入 HTML；优先级高于 `insertAfter` |
@@ -521,15 +564,15 @@ const dy = new Dynamic(options);
 
 下面是对 `options` 对象的有效属性的描述，注意所有属性都是**可选的**。无效的属性将被 dynamic 忽略。
 
-|                   有效属性                    |      类型       |               描述               |
-| :-------------------------------------------: | :-------------: | :------------------------------: |
-|           [`rootScope`](#rootScope)           |  `HTMLElement`  |   创建实例时顺便指定一个作用域   |
-|     [`enableAntiClash`](#enableAntiClash)     |    `boolean`    |         是否开启碰撞检测         |
-|      [`clashHandler`](#enableAntiClash)       |   `Function`    |           碰撞处理方法           |
-|   [`multiNextDataNode`](#multiNextDataNode)   |    `boolean`    | 是否允许数据节点存在多个下级节点 |
-| [`renderSecurityLevel`](#renderSecurityLevel) | `0 | 1 | 2 | 3` |        渲染 HTML 安全级别        |
-|    [`bannedTagName`](#renderSecurityLevel)    |   `string[]`    |       禁止渲染的 HTML 标签       |
-|      [`tInstanceLimit`](#tInstanceLimit)      |    `number`     |      限制模板实例的保存数量      |
+|                   有效属性                    |                           类型                            |               描述               |
+| :-------------------------------------------: | :-------------------------------------------------------: | :------------------------------: |
+|           [`rootScope`](#rootScope)           |                       `HTMLElement`                       |   创建实例时顺便指定一个作用域   |
+|     [`enableAntiClash`](#enableAntiClash)     |                         `boolean`                         |         是否开启碰撞检测         |
+|      [`clashHandler`](#enableAntiClash)       | `(type :string, args :object, clashee :object) => string` |           碰撞处理方法           |
+|   [`multiNextDataNode`](#multiNextDataNode)   |                         `boolean`                         | 是否允许数据节点存在多个下级节点 |
+| [`renderSecurityLevel`](#renderSecurityLevel) |                      `0 | 1 | 2 | 3`                      |        渲染 HTML 安全级别        |
+|    [`bannedTagName`](#renderSecurityLevel)    |                        `string[]`                         |       禁止渲染的 HTML 标签       |
+|      [`tInstanceLimit`](#tInstanceLimit)      |                         `number`                          |      限制模板实例的保存数量      |
 
 ## rootScope
 
@@ -589,29 +632,30 @@ dynamic 在渲染每一个模板后都会记录下有关数据，但是这些数
 
 # 补充说明
 
-## 开发背景
+## 开发背景与设计意图
 
-dynamic 对标市面上的 JavaScript 框架（下简：框架）。在我看来，这些框架存在以下优点：
+dynamic 和市面上的 JavaScript 框架（下简：框架）大致属于同一类产品。目前的三大框架 `React`、`Vue` 和 `Angular`，我多多少少都用过一点，通过自身使用的感受，我开发了 dynamic。顺便说一句，React 是我觉得的在这三个框架中最繁琐的，所以下面的缺点大多数都体现在 React 中。
+
+在我看来，这些框架存在以下优点：
 
 1. 极大提升了 UI 开发效率，**特别是针对某一类 UI 的批量开发**。
 2. 声明式编程，更贴近自然思维。
-3. 高度 API 化，无需接触底层浏览器 API。
-4. 非常便于管理数据的流动与展示。
-5. 可以满足服务端渲染需求。
+3. 便于管理数据的流动与展示。
+4. 可以满足服务端渲染需求。
+5. 使代码重用率提升，减小代码库。
 
 但也存在以下缺点：
 
 1. 各个框架均存在各自不同的语法和编程形式，这让学习一个框架因需要适应新语法而变得困难，相同问题也见于切换框架。
 2. 相对原生 API 来说，框架的性能普遍不高。
-3. 框架的编程环境搭建费力，特别是某些需要通过预编译器编译代码的框架。
-4. 声明式编程让我们对框架在幕后做了什么几乎一无所知，导致我们需要不停地查阅文档。这同时也导致事件处理的混乱和 hook 的诞生，进而导致需要研读大量框架文档。
+3. 框架的开发环境搭建费力，特别是某些需要通过预编译器编译代码的框架。
+4. 声明式编程让开发者对框架在幕后做了什么几乎一无所知，导致需要不停地查阅文档。这同时也导致事件处理的混乱和 hook 的诞生，进而导致需要进一步地大量研读文档。
 
 dynamic 在付出抛弃一些优点的代价后，做到了以下特性：
 
 1. 仅在 HTML 中允许部分声明式编程，其余绝大部分使用命令式编程。
    - 这让我们可以在事件处理到需要调用 dynamic 的时候正确地使用 dynamic，而不是对框架用 hook 函数。
    - 这损失了什么？喜好声明式编程的开发者的效率。但是开发者的思维不应该就是命令式的吗？为了提高效率或让开发者读起来舒服而把大量权力交给框架内部，然后不停地翻查文档找它会自己干些什么，我不觉得这是一件聪明事。
-   - 如果说 jQuery 是需要全过程编程的工具——就像灶台上的烧水壶，框架是近乎全过程的自动化工具——就像茶水间的直饮水机，那么 dynamic 就是一个需要且仅需要在必要的时候编程的工具——就像桌子上的电热水壶。jQuery 需要一刻不停的参与；框架只需要打开电源、接好水管；dynamic 需要在框架的基础上再从很多个按钮里找出需要的功能，之后无需参与。
 2. 抛弃自定义语法，尽可能贴近原生语法与原生 API。
    - 这让学过 JavaScript 和现代浏览器原生 API 的开发者可以快速上手 dynamic。
    - 这损失了一些编程效率，但在可接受的范围内，因为 dynamic 普遍采用命令式编程。
@@ -619,7 +663,35 @@ dynamic 在付出抛弃一些优点的代价后，做到了以下特性：
    - 这存在一定的性能问题。
    - 这几乎完美解决了双向数据流和数据隔离问题，并且可以直接作为一个数据框架使用。
 
-总之：其意义在于在前端开发高度框架化的今天探究一种无框架（弱框架）的编程方式，但同时又最大限度地保留框架带来的好处。
+dynamic 的设计意图是成为电热水壶。如果说 jQuery 是需要全过程编程的工具——就像灶台上的烧水壶，框架是近乎全过程的自动化工具——就像茶水间的直饮水机，那么 dynamic 就是一个需要且仅需要在必要的时候编程的工具——就像桌子上的电热水壶。jQuery 需要一刻不停的参与；框架只需要打开电源、接好水管；dynamic 需要在框架的基础上再从很多个按钮里找出需要的功能，之后无需参与。
+
+dynamic 本质是试验性的，完全欢迎对比讨论批评。其主要意义是在前端开发高度框架化的今天探究一种弱框架的编程方式，但同时又最大限度地保留框架带来的好处。
+
+## 可能的 FAQ
+
+#### 为什么要搞直接渲染方法 / 其他工具？
+
+给相信原生力量的开发者留条后路吧。
+
+#### 为什么不像 Vue 一样以 App 实例为作用域进行数据绑定？
+
+因为这样子一来你的数据就被困在这个 App 对象里了，无法方便地用于其他地方（如：同页面上的另一个框架、原生 JS）。
+
+#### 明明有数据流管理，为什么还要搞模板功能？
+
+数据流管理是针对于网页中动态的部分做的，而模板却不一定是动态的。事实上 60% 的模板都**不存在**多次变化的动态部分，只存在一次性插值。数据流管理比较耗性能，就用一次的话不是很实在。
+
+#### 为什么不搞 JSX 语法 / 本地编译器 / ……？
+
+dynamic 的设计初衷之一就是让开发者可以在无任何依赖的情况下编程，为了一点语法糖就要安装一堆依赖不值得。
+
+#### 为什么不用其他框架 / jQuery / 原生 JS？
+
+？？？
+
+#### 为什么……要这么写？
+
+只要在中等规模的页面上没有明显的性能差距，那么任何一种写法都是正确的。但是如果有明显性能差距，请提 issue。
 
 ## 版权声明
 
@@ -627,7 +699,8 @@ dynamic 在付出抛弃一些优点的代价后，做到了以下特性：
 
 ©2020-2022 LJM12914
 
-## issues与PR
+## 互动
 
-- 欢迎提出issue。
+- 欢迎提出issue，但请保持冷静的态度和对事不对人的基本道德准则。
 - 请不要在未与我沟通的情况下发起PR，否则PR大概率被拒绝。
+- 随便 fork。
