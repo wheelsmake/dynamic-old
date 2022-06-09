@@ -115,12 +115,15 @@ export default class template{
     #parseSlots = (target :HTMLElement, argSlots? :anyObject) :void=>{
         const slots = utils.e("slot", target) as HTMLSlotElement[]; //用非id的css选择器就一定返回Node[]
         //console.log(slots);
+        for(let j in argSlots) if(argSlots[j] === undefined) Object.proper
         if(argSlots !== undefined && slots.length != 0) for(let i = 0; i < slots.length; i++){ //用一个attribute比遍整个args.slot
             const attr = slots[i].getAttribute("name"), isHTMLSlot = slots[i].getAttribute("html") === "";
             if(attr === null || attr === "") continue;
             for(let j in argSlots) if(j === attr){
-                if(isHTMLSlot) slots[i].innerHTML = argSlots[j];
-                else slots[i].innerText = argSlots[j];
+                const content = argSlots[j];
+                if(content === undefined) continue; //魔法字
+                if(isHTMLSlot) slots[i].innerHTML = content;
+                else slots[i].innerText = content;
             }
         }
         if(slots.length != 0) for(let i = 0; i < slots.length; i++){ //转换slots节点到文本节点

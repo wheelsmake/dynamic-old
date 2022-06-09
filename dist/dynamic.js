@@ -12,6 +12,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ dataFlow)
 /* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.ts");
 var __classPrivateFieldSet = (undefined && undefined.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -23,26 +24,40 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _dataFlow_options, _dataFlow_dfScopes, _dataFlow_dataNodes, _dataFlow_observer, _dataFlow_observerCB;
+var _dataFlow_options, _dataFlow_dfScopes, _dataFlow_dataNodes, _dataFlow_observer, _dataFlow__, _dataFlow_observerCB;
+
 class dataFlow {
-    constructor(options) {
+    constructor(options, _) {
         _dataFlow_options.set(this, void 0);
         _dataFlow_dfScopes.set(this, []);
         _dataFlow_dataNodes.set(this, []);
         _dataFlow_observer.set(this, void 0);
+        _dataFlow__.set(this, {});
         _dataFlow_observerCB.set(this, (resultList, observer) => {
         });
         __classPrivateFieldSet(this, _dataFlow_options, options, "f");
+        __classPrivateFieldSet(this, _dataFlow__, _, "f");
         __classPrivateFieldSet(this, _dataFlow_observer, new MutationObserver(__classPrivateFieldGet(this, _dataFlow_observerCB, "f")), "f");
         __classPrivateFieldGet(this, _dataFlow_observer, "f").observe(document.body, {
             childList: true,
             subtree: true
         });
     }
-    new() {
+    new(element) {
+        for (let i = 0; i < __classPrivateFieldGet(this, _dataFlow_dfScopes, "f").length; i++)
+            if (_utils__WEBPACK_IMPORTED_MODULE_0__["default"].isDescendant(element, __classPrivateFieldGet(this, _dataFlow_dfScopes, "f")[i]) || element === __classPrivateFieldGet(this, _dataFlow_dfScopes, "f")[i])
+                return;
+        for (let i = 0; i < __classPrivateFieldGet(this, _dataFlow_dfScopes, "f").length; i++)
+            if (_utils__WEBPACK_IMPORTED_MODULE_0__["default"].isDescendant(__classPrivateFieldGet(this, _dataFlow_dfScopes, "f")[i], element))
+                _utils__WEBPACK_IMPORTED_MODULE_0__["default"].precisePop(__classPrivateFieldGet(this, _dataFlow_dfScopes, "f")[i], __classPrivateFieldGet(this, _dataFlow_dfScopes, "f"));
+        __classPrivateFieldGet(this, _dataFlow_dfScopes, "f").push(element);
+    }
+    createDataNode() {
+    }
+    connect(node1, node2) {
     }
 }
-_dataFlow_options = new WeakMap(), _dataFlow_dfScopes = new WeakMap(), _dataFlow_dataNodes = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow_observerCB = new WeakMap();
+_dataFlow_options = new WeakMap(), _dataFlow_dfScopes = new WeakMap(), _dataFlow_dataNodes = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow__ = new WeakMap(), _dataFlow_observerCB = new WeakMap();
 
 
 /***/ }),
@@ -69,15 +84,39 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _template_instances, _template_options, _template_templates, _template_instances_1, _template_observer, _template_parseSlots, _template_getTemplateObject, _template_observerCB, _template_convertTemplate;
+var _template_options, _template_templates, _template_instances, _template_observer, _template_parseSlots, _template_getTemplateObject, _template_observerCB, _template_convertTemplate;
 
 class template {
     constructor(options) {
-        _template_instances.add(this);
         _template_options.set(this, void 0);
         _template_templates.set(this, []);
-        _template_instances_1.set(this, []);
+        _template_instances.set(this, []);
         _template_observer.set(this, void 0);
+        _template_parseSlots.set(this, (target, argSlots) => {
+            const slots = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].e("slot", target);
+            if (argSlots !== undefined && slots.length != 0)
+                for (let i = 0; i < slots.length; i++) {
+                    const attr = slots[i].getAttribute("name"), isHTMLSlot = slots[i].getAttribute("html") === "";
+                    if (attr === null || attr === "")
+                        continue;
+                    for (let j in argSlots)
+                        if (j === attr) {
+                            const content = argSlots[j];
+                            if (content === undefined)
+                                continue;
+                            if (isHTMLSlot)
+                                slots[i].innerHTML = content;
+                            else
+                                slots[i].innerText = content;
+                        }
+                }
+            if (slots.length != 0)
+                for (let i = 0; i < slots.length; i++) {
+                    const par = slots[i].parentElement;
+                    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].hatch(slots[i], true);
+                    par.normalize();
+                }
+        });
         _template_getTemplateObject.set(this, (tuID) => {
             for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
                 if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === tuID)
@@ -179,7 +218,7 @@ class template {
             if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === args.tuID) {
                 const content = __classPrivateFieldGet(this, _template_templates, "f")[i].content.cloneNode(true);
                 if (content instanceof HTMLElement)
-                    __classPrivateFieldGet(this, _template_instances, "m", _template_parseSlots).call(this, content, args.slots);
+                    __classPrivateFieldGet(this, _template_parseSlots, "f").call(this, content, args.slots);
                 var nodes = [];
                 if (args.removeOuterElement === true)
                     nodes = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].getInnerNodes(content);
@@ -234,28 +273,7 @@ class template {
     getInstance(tuID) {
     }
 }
-_template_options = new WeakMap(), _template_templates = new WeakMap(), _template_instances_1 = new WeakMap(), _template_observer = new WeakMap(), _template_getTemplateObject = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap(), _template_instances = new WeakSet(), _template_parseSlots = function _template_parseSlots(target, argSlots) {
-    const slots = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].e("slot", target);
-    if (argSlots !== undefined && slots.length != 0)
-        for (let i = 0; i < slots.length; i++) {
-            const attr = slots[i].getAttribute("name"), isHTMLSlot = slots[i].getAttribute("html") === "";
-            if (attr === null || attr === "")
-                continue;
-            for (let j in argSlots)
-                if (j === attr) {
-                    if (isHTMLSlot)
-                        slots[i].innerHTML = argSlots[j];
-                    else
-                        slots[i].innerText = argSlots[j];
-                }
-        }
-    if (slots.length != 0)
-        for (let i = 0; i < slots.length; i++) {
-            const par = slots[i].parentElement;
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].hatch(slots[i], true);
-            par.normalize();
-        }
-};
+_template_options = new WeakMap(), _template_templates = new WeakMap(), _template_instances = new WeakMap(), _template_observer = new WeakMap(), _template_parseSlots = new WeakMap(), _template_getTemplateObject = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap();
 
 
 /***/ }),
@@ -282,6 +300,26 @@ __webpack_require__.r(__webpack_exports__);
                 return a[0];
             else
                 return Array.from(a);
+        },
+        precisePop(ele, array) {
+            if (array.indexOf(ele) === -1)
+                return null;
+            return array.splice(array.indexOf(ele), 1);
+        },
+        isDescendant(element, target) {
+            while (element.tagName != "HTML") {
+                element = element.parentNode;
+                if (element === target)
+                    return true;
+            }
+            return false;
+        },
+        isChild(element, target) {
+            const children = target.childNodes;
+            for (let i = 0; i < children.length; i++)
+                if (element === children[i])
+                    return true;
+            return false;
         },
         E(argument, type, value) {
             if (argument === undefined)
@@ -478,10 +516,11 @@ console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou 
 class Dynamic {
     constructor(options) {
         _Dynamic_options.set(this, void 0);
+        this._ = {};
         console.warn("Creating new Dynamic instance with options", options);
         __classPrivateFieldSet(this, _Dynamic_options, options, "f");
         this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"));
-        this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"));
+        this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"), this._);
     }
     getOptions() {
         return __classPrivateFieldGet(this, _Dynamic_options, "f");
@@ -502,6 +541,9 @@ class Dynamic {
         return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].hatch(args.element, args.remove);
     }
     compose() {
+    }
+    n() {
+        return this.dataFlow.createDataNode();
     }
 }
 _Dynamic_options = new WeakMap();

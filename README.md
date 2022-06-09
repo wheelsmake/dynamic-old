@@ -250,6 +250,7 @@ dy.template.getTemplates() :object[];
 - 为避免 XSS，需要在 `<slot>` 中特别声明 `html` attribute 才能在模板变量中插入 HTML。插入的 HTML 中的 `<slot>` 无论如何都不会被转换。为了使 dynamic 的行为可预知，请**不要嵌套** `slot` **元素**。（TODO：处理嵌套slot）
 - 没有 `name` attribute 或没有提供与其 `name` attribute 一致的变量内容的 `<slot>` 会被直接转换为文本节点。所以，`<slot>` 元素若含有内部内容（如上文的 `#slot2`），则其将成为缺省值，在没有提供该 `<slot>` 的变量值而使用模板时将会使用该值。
 - 拥有相同 `name` attribute 的 `<slot>` 共享同一内容。
+- 当传入的内容为 `undefined`（`typeof undefined`）时，dynamic 会选择性忽略该 `slot`，有利于便捷地书写渲染方法。
 
 下面演示一个例子：
 
@@ -290,6 +291,8 @@ dy.template.render({
     <slot name="saa">saa</slot>
 </my-tuid>
 ```
+
+- 当传入的内容为 `undefined`时，dynamic 不会忽略该 `slot`，因为它的类型是 `string`。不可能在 HTML 中写出 `undefined` 类型。
 
 ### 模板追踪（TODO）
 

@@ -7,11 +7,15 @@
     </head>
     <body>
         <div id="root">
-            
+            <div id="header">
+                <button id="add" onclick="add()">添加待办事项</button><input id="content" type="text" />
+            </div>
+            <div id="field">
+
+            </div>
         </div>
-        <template dynamic tuid="todo-main">
-            <div><label><input type="checkbox" onclick="switchState()" />finish</label></div>
-            <div><slot name="todo-content">Empty Content</slot></div>
+        <template dynamic tuid="todo">
+            <label><input type="checkbox" onclick="switchState()" />finish</label>&emsp;<slot name="todo-content">Empty Content</slot>
         </template>
     </body>
     <script src="../../dist/dynamic.min.js"></script>
