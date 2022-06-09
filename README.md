@@ -632,6 +632,8 @@ dynamic 在渲染每一个模板后都会记录下有关数据，但是这些数
 
 # 补充说明
 
+### 可以浏览 [`tests/`](tree/main/tests) 和 [`sample_projects/`](tree/main/sample_projects) 目录中的示例项目！
+
 ## 开发背景与设计意图
 
 dynamic 和市面上的 JavaScript 框架（下简：框架）大致属于同一类产品。目前的三大框架 `React`、`Vue` 和 `Angular`，我多多少少都用过一点，通过自身使用的感受，我开发了 dynamic。顺便说一句，React 是我觉得的在这三个框架中最繁琐的，所以下面的缺点大多数都体现在 React 中。
