@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0,shrink-to-fit=no" />
+        <title>dynamic test</title>
+    </head>
+    <body>
+        <div class="box">
+          <div class="a"></div>
+          <div class="b"></div>
+      
+          <input type="text" id="text" oninput="ffff();">
+      
+          <div class="c" id="tt"></div>
+        </div>
+      </body>
+      <script>
+      
+        function fid(id) {
+          return document.getElementById(id);
+        }
+      
+        function ffff() {
+          proo.text = fid('text').value;
+        }
+        let proo = new Proxy({ text: '' }, {
+          get(target, key, receiver) {
+            if (key in target) {
+              return target[key];
+            } else {
+              return new ReferenceError('emmmm');
+            }
+          },
+          set(target, key, value, receiver) {
+            target[key] = value;
+            fid('tt').innerText = value;
+            if (fid('text').value !== value) {
+              fid('text').value = value;
+            }
+          }
+        })
+      </script>
+</html>
