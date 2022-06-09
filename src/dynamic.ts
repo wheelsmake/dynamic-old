@@ -25,18 +25,18 @@ class Dynamic{
     #options :dynamicOptions;
     template :template;
     dataFlow :dataFlow;
-    utils;
     constructor(options? :dynamicOptions){
         console.warn("Creating new Dynamic instance with options", options);
         this.#options = options;
         this.template = new template(this.#options);
         this.dataFlow = new dataFlow(this.#options);
-        this.utils = utils;
+        //this.#utils = utils;
     }
     getOptions() :dynamicOptions{
         return this.#options;
     }
     render(args :renderArgs) :Node[]{
+        //todo:添加渲染限制
         return utils.render(args.HTML, args.element, args.insertAfter, args.append, args.disableDF);
     }
     repeat(args :repeatArgs) :any[]{
@@ -56,5 +56,4 @@ class Dynamic{
     }
 }
 utils.constantize(Dynamic);
-const w1ndow = window as any;
-w1ndow.Dynamic = Dynamic;
+(window as any).Dynamic = Dynamic;

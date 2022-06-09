@@ -56,7 +56,7 @@ const dy = new Dynamic(options? :object);
 "asdfg-" //错误，在结尾出现连字符（但却是有效的自定义元素，dynamic为了保持标签美观而将其视为错误。）
 ```
 
-## 注册一个模板（组件）
+## 注册模板（组件）
 
 ### 从 `<template>` 元素
 
@@ -99,7 +99,7 @@ dy.template.register({
 
 模板注册时使用了 `Node.cloneNode()` 方法对传入的元素进行拷贝，这会导致该元素及其后代元素的**通过 JavaScript 绑定的事件被完全移除**。在不远的未来可以考虑对此缺陷进行补偿（TODO）。
 
-## 使用一个模板
+## 使用模板
 
 在文档的指定位置插入模板：
 
@@ -127,23 +127,24 @@ dy.template.render({
 
 该方法以节点数组形式返回文档中被插入的模板实例。
 
-或者也可以直接在 HTML 中释放以 `tuID` 为元素类型的元素，dynamic 会自动将其替换为模板内容。
+或者也可以直接在 HTML 中释放标签名为 `tuID` 的元素，dynamic 会自动将其替换为模板内容。
 
-- dynamic 不会扫描已有的 DOM，释放必须在注册相应模板**后**发生。
+- dynamic 不会扫描已有的 DOM，释放必须在注册相应模板**后**发生。（TODO：要扫描）
 
 ```typescript
 dy.e("#myelement").append(document.createElement("my-tuid"));
 ```
 
-释放带 `slot` 模板变量的模板：注意模板变量的赋值与顺序无关。dynamic 会自动将模板中的变量与元素中赋值的模板变量进行比对并插入，若模板中无此模板变量，则会被直接就地转换为文本节点。
-
 ```html
-<!--tuID = my-tuid-->
 <my-tuid>
-    <slot name="ass">ass</slot>
-    <slot name="saa">saa</slot>
+    <div>I will be deleted.</div>
+    <slot name="a">I'm the value of 'a'</slot>
 </my-tuid>
 ```
+
+- 在这个元素中存在的所有 DOM 都将被删除，全部替换为模板内容。
+
+- 释放带模板变量的模板：参见[模板变量](#模板变量)。
 
 ## 其他操作
 
@@ -238,17 +239,17 @@ dy.template.getTemplates() :object[];
 |   `id`    | 模板的 ID  |
 | `content` | 模板的内容 |
 
-## 模板进阶（TODO）
+## 模板进阶
 
-### 模板变量（TODO）
+### 模板变量
 
 在 dynamic 中，可以通过 `slot` 元素在模板中插入变量，通过 dynamic ，其在功能与原生几乎相同的同时增强了兼容。
 
 - 模板变量不是数据节点，与[数据流管理](#数据流管理)中的数据节点不是同一个概念。模板变量被设计为一次性的替换。
 - dynamic 处理模板变量的时机是每一次渲染时，所以使用 `getContent()` 方法仍可以取到原封不动的传入 DOM。
-- 为避免 XSS，需要在 `<slot>` 中特别声明 `html` attribute 才能在模板变量中插入 HTML。插入的 HTML 中的 `<slot>` 无论如何都不会被转换。
-- `<slot>` 元素必须拥有 `name` attribute，否则会被直接就地转换为文本节点。拥有相同 `name` attribute 的 `<slot>` 共享同一内容。
-- `<slot>` 元素若含有内部内容（如上文的 `#slot2`），则其将成为缺省值，在没有提供该 `<slot>` 的变量值而使用模板时将会使用该值。
+- 为避免 XSS，需要在 `<slot>` 中特别声明 `html` attribute 才能在模板变量中插入 HTML。插入的 HTML 中的 `<slot>` 无论如何都不会被转换。为了使 dynamic 的行为可预知，请**不要嵌套** `slot` **元素**。（TODO：处理嵌套slot）
+- 没有 `name` attribute 或没有提供与其 `name` attribute 一致的变量内容的 `<slot>` 会被直接转换为文本节点。所以，`<slot>` 元素若含有内部内容（如上文的 `#slot2`），则其将成为缺省值，在没有提供该 `<slot>` 的变量值而使用模板时将会使用该值。
+- 拥有相同 `name` attribute 的 `<slot>` 共享同一内容。
 
 下面演示一个例子：
 
@@ -276,6 +277,18 @@ dy.template.render({
     append: false,
     disableDF: false
 });
+```
+
+释放带模板变量的模板：注意模板变量的赋值与顺序无关。dynamic 会自动将模板中的变量与元素中赋值的模板变量进行比对并插入。
+
+- 即使模板中无此模板变量，也不会引发任何问题。
+
+```html
+<!--tuID = my-tuid-->
+<my-tuid>
+    <slot name="ass">ass</slot>
+    <slot name="saa">saa</slot>
+</my-tuid>
 ```
 
 ### 模板追踪（TODO）
@@ -319,7 +332,7 @@ dy.template.getInstance(tuID :string) :object[];
 
 dynamic 使用节点 + 网结构来管理数据流。
 
-每个数据节点都可以有 上游节点（`prevNodes[]`），但是只有 JavaScript 中的数据节点可以有 下游节点（`nextNodes[]`），因为 HTML 中的数据节点不能被侦测。因此我们将 HTML 中的数据节点也称为 `导出节点`。
+每个数据节点都可以有 `上游节点`（`prevNodes[]`），但是只有 JavaScript 中的数据节点可以有 `下游节点`（`nextNodes[]`），因为 HTML 中的数据节点不能被侦测。因此我们将 HTML 中的数据节点也称为 `导出节点`。
 
 数据节点可以被插入到任何地方，并且可以包含任何 JavaScript 对象。在目前的 dynamic 中，数据节点内容是**动态类型**的。以后可能会更改为**动静混合类型**以提供类型检测功能。
 
@@ -371,7 +384,7 @@ dy.dataFlow.new(element :HTMLElement) :void;
 
 其实和上面的一模一样。dynamic 不会将 HTML 文档中的字符串的一部分识别为有效 `dfID`，若要达到上面的插值效果，需要给 `dfID` 两侧添加 `{{}}` 双大括号来指示 dynamic。
 
-或者也可以通过一个处理数据节点处理字符串插值后再流动到 HTML 文档中，此时由于整个字符串都是 `dfID` 内容，故不需要添加指示：
+或者也可以通过一个数据处理节点处理字符串插值后再流动到 HTML 文档中，此时由于整个字符串都是 `dfID` 内容，故不需要添加指示：
 
 ```html
 <div :style="dfID"></div>
@@ -510,12 +523,17 @@ const dy = new Dynamic(options);
 
 |                   有效属性                    |      类型       |               描述               |
 | :-------------------------------------------: | :-------------: | :------------------------------: |
-|                  `rootScope`                  |  `HTMLElement`  |   创建实例时顺便指定一个作用域   |
+|           [`rootScope`](#rootScope)           |  `HTMLElement`  |   创建实例时顺便指定一个作用域   |
 |     [`enableAntiClash`](#enableAntiClash)     |    `boolean`    |         是否开启碰撞检测         |
-|                `clashHandler`                 |   `Function`    |           碰撞处理方法           |
+|      [`clashHandler`](#enableAntiClash)       |   `Function`    |           碰撞处理方法           |
 |   [`multiNextDataNode`](#multiNextDataNode)   |    `boolean`    | 是否允许数据节点存在多个下级节点 |
 | [`renderSecurityLevel`](#renderSecurityLevel) | `0 | 1 | 2 | 3` |        渲染 HTML 安全级别        |
 |    [`bannedTagName`](#renderSecurityLevel)    |   `string[]`    |       禁止渲染的 HTML 标签       |
+|      [`tInstanceLimit`](#tInstanceLimit)      |    `number`     |      限制模板实例的保存数量      |
+
+## rootScope
+
+用于在创建实例时顺便指定一个作用域。更多信息请参见[新建作用域](#新建作用域)。
 
 ## enableAntiClash
 
@@ -564,6 +582,10 @@ dynamic 默认只允许数据节点存在一个下级节点，因为多下级节
     "link"
 ]}
 ```
+
+## tInstanceLimit
+
+dynamic 在渲染每一个模板后都会记录下有关数据，但是这些数据少有用处。在需要渲染海量模板的页面上，这还会导致性能下降。但这可以通过修改 `tInstanceLimit` 解决，它限制了能同时存在的模板实例的最大值。一旦突破这个值，dynamic 就会删除当前最早的实例。设为 0 以完全禁用保存模板实例功能。设为 -1（默认值）以取消对模板实例数量的限制。
 
 # 补充说明
 

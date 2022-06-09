@@ -55,27 +55,13 @@ export default class template{
         if(args.remove === true) args.element.remove();
         return args.tuID;
     }
-    //超级核心方法
+    //超级核心方法todo:添加渲染限制
     render(args :renderArgs) :Node[] | undefined/*hack:ts不认utils.E的never类型，只能加undefined了*/{
         for(let i = 0; i < this.#templates.length; i++){
             if(this.#templates[i].id === args.tuID){
                 const content = this.#templates[i].content.cloneNode(true);
                 //slots变量替换
-                if(content instanceof HTMLElement){ //排除content是文本/注释节点的情况
-                    const slots = utils.e("slot", content) as HTMLSlotElement[]; //用非id的css选择器就一定返回Node[]
-                    if(args.slots !== undefined && slots.length != 0) for(let i = 0; i < slots.length; i++){ //用一个attribute比遍整个args.slot
-                        const attr = slots[i].getAttribute("name"), isHTMLSlot = slots[i].getAttribute("html") === "";
-                        if(attr === null || attr === "") continue;
-                        for(let j in args.slots) if(j === attr){
-                            if(isHTMLSlot) slots[i].innerHTML = args.slots[j];
-                            else slots[i].innerText = args.slots[j];
-                        }
-                    }
-                    if(slots.length != 0) for(let i = 0; i < slots.length; i++){//转换slots节点到文本节点
-                        content.normalize
-
-                    }
-                }
+                if(content instanceof HTMLElement) this.#parseSlots(content, args.slots);
                 var nodes :Node[] = [];
                 if(args.removeOuterElement === true) nodes = utils.getInnerNodes(content);
                 else nodes[0] = content;
@@ -126,7 +112,24 @@ export default class template{
             ]
         }];*/
     }
-    #getTemplateObject(tuID :string) :object | null{
+    #parseSlots(target :HTMLElement, argSlots? :anyObject) :void{
+        const slots = utils.e("slot", target) as HTMLSlotElement[]; //用非id的css选择器就一定返回Node[]
+        //console.log(slots);
+        if(argSlots !== undefined && slots.length != 0) for(let i = 0; i < slots.length; i++){ //用一个attribute比遍整个args.slot
+            const attr = slots[i].getAttribute("name"), isHTMLSlot = slots[i].getAttribute("html") === "";
+            if(attr === null || attr === "") continue;
+            for(let j in argSlots) if(j === attr){
+                if(isHTMLSlot) slots[i].innerHTML = argSlots[j];
+                else slots[i].innerText = argSlots[j];
+            }
+        }
+        if(slots.length != 0) for(let i = 0; i < slots.length; i++){ //转换slots节点到文本节点
+            const par = slots[i].parentElement!;
+            utils.hatch(slots[i], true);
+            par.normalize();
+        }
+    }
+    #getTemplateObject = (tuID :string) :object | null=>{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID) return this.#templates[i];
         return null;
     }
@@ -134,16 +137,31 @@ export default class template{
     #observerCB = (resultList :MutationRecord[], observer :MutationObserver)=>{
         for(let i = 0; i < resultList.length; i++) for(let j = 0; j < resultList[i].addedNodes.length; j++){
             const ele = resultList[i].addedNodes[j];
-            if(!(ele instanceof HTMLElement)) return; //不处理文本节点或注释节点
-            //console.log(ele.tagName);
+            if(!(ele instanceof HTMLElement)) return; //不处理文本注释节点
             //template增量注册
             if(ele instanceof HTMLTemplateElement/*t && ele.getAttribute("nodynamic") === null //放到convertTemplate里面做，不要混乱分工*/) this.#convertTemplate(ele);
             //释放tuid检测与渲染模板
             if(this.getContent(ele.tagName.toLowerCase())){
-                //todo:识别模板变量并插入
+                //识别模板变量并插入
+                //const slots = utils.e("slots", ele) as HTMLSlotElement[]; //note:自定义标签名元素设置的innerHTML无法使用querySelectorAll，只能遍历节点
+                var slots :HTMLSlotElement[] = [];
+                for(let i = 0; i < ele.childNodes.length; i++){
+                    const child = ele.childNodes[i] as Node;
+                    if(child instanceof HTMLElement && child.tagName === "SLOT") slots.push(child as HTMLSlotElement);
+                }
+                //console.log(ele.childNodes, ele.innerHTML, ele, slots);
+                var argSlots :anyObject = {};
+                for(let i = 0; i < slots.length; i++){
+                    const name = slots[i].getAttribute("name");
+                    if(name === null || name === "") continue; //到#parseSlots后会处理这种没name的玩意
+                    argSlots[name] = slots[i].innerHTML; //到#parseSlots后还有个innerText挡住呢
+                }
+                //console.log(argSlots);
+                ele.innerHTML = ""; //全部清空，slots已经提取出来了
                 this.render({
                     tuID: ele.tagName.toLowerCase(),
-                    element: ele
+                    element: ele,
+                    slots: argSlots
                 });
                 utils.hatch(ele, true);
             }

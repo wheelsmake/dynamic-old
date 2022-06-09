@@ -69,7 +69,7 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _template_instances, _template_options, _template_templates, _template_instances_1, _template_observer, _template_getTemplateObject, _template_observerCB, _template_convertTemplate;
+var _template_instances, _template_options, _template_templates, _template_instances_1, _template_observer, _template_parseSlots, _template_getTemplateObject, _template_observerCB, _template_convertTemplate;
 
 class template {
     constructor(options) {
@@ -78,6 +78,12 @@ class template {
         _template_templates.set(this, []);
         _template_instances_1.set(this, []);
         _template_observer.set(this, void 0);
+        _template_getTemplateObject.set(this, (tuID) => {
+            for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
+                if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === tuID)
+                    return __classPrivateFieldGet(this, _template_templates, "f")[i];
+            return null;
+        });
         _template_observerCB.set(this, (resultList, observer) => {
             for (let i = 0; i < resultList.length; i++)
                 for (let j = 0; j < resultList[i].addedNodes.length; j++) {
@@ -87,9 +93,24 @@ class template {
                     if (ele instanceof HTMLTemplateElement)
                         __classPrivateFieldGet(this, _template_convertTemplate, "f").call(this, ele);
                     if (this.getContent(ele.tagName.toLowerCase())) {
+                        var slots = [];
+                        for (let i = 0; i < ele.childNodes.length; i++) {
+                            const child = ele.childNodes[i];
+                            if (child instanceof HTMLElement && child.tagName === "SLOT")
+                                slots.push(child);
+                        }
+                        var argSlots = {};
+                        for (let i = 0; i < slots.length; i++) {
+                            const name = slots[i].getAttribute("name");
+                            if (name === null || name === "")
+                                continue;
+                            argSlots[name] = slots[i].innerHTML;
+                        }
+                        ele.innerHTML = "";
                         this.render({
                             tuID: ele.tagName.toLowerCase(),
-                            element: ele
+                            element: ele,
+                            slots: argSlots
                         });
                         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].hatch(ele, true);
                     }
@@ -136,7 +157,7 @@ class template {
         while (this.existsTUID(args.tuID)) {
             if (__classPrivateFieldGet(this, _template_options, "f") && __classPrivateFieldGet(this, _template_options, "f").enableAntiClash === true) {
                 if (__classPrivateFieldGet(this, _template_options, "f").clashHandler !== undefined)
-                    args.tuID = __classPrivateFieldGet(this, _template_options, "f").clashHandler("tuID", args, __classPrivateFieldGet(this, _template_instances, "m", _template_getTemplateObject).call(this, args.tuID));
+                    args.tuID = __classPrivateFieldGet(this, _template_options, "f").clashHandler("tuID", args, __classPrivateFieldGet(this, _template_getTemplateObject, "f").call(this, args.tuID));
                 else
                     _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("options.clashHandler", "Function", __classPrivateFieldGet(this, _template_options, "f").clashHandler);
             }
@@ -155,17 +176,18 @@ class template {
     render(args) {
         for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++) {
             if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === args.tuID) {
-                const content = __classPrivateFieldGet(this, _template_templates, "f")[i].content;
+                const content = __classPrivateFieldGet(this, _template_templates, "f")[i].content.cloneNode(true);
+                if (content instanceof HTMLElement)
+                    __classPrivateFieldGet(this, _template_instances, "m", _template_parseSlots).call(this, content, args.slots);
                 var nodes = [];
                 if (args.removeOuterElement === true)
                     nodes = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].getInnerNodes(content);
                 else
-                    nodes[0] = content.cloneNode(true);
+                    nodes[0] = content;
                 return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].render(nodes, args.element, args.insertAfter, args.append, args.disableDF);
             }
         }
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].E("tuID", "valid ID that exists", args.tuID);
-        return null;
     }
     update(args) {
         for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
@@ -211,11 +233,27 @@ class template {
     getInstance(tuID) {
     }
 }
-_template_options = new WeakMap(), _template_templates = new WeakMap(), _template_instances_1 = new WeakMap(), _template_observer = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap(), _template_instances = new WeakSet(), _template_getTemplateObject = function _template_getTemplateObject(tuID) {
-    for (let i = 0; i < __classPrivateFieldGet(this, _template_templates, "f").length; i++)
-        if (__classPrivateFieldGet(this, _template_templates, "f")[i].id === tuID)
-            return __classPrivateFieldGet(this, _template_templates, "f")[i];
-    return null;
+_template_options = new WeakMap(), _template_templates = new WeakMap(), _template_instances_1 = new WeakMap(), _template_observer = new WeakMap(), _template_getTemplateObject = new WeakMap(), _template_observerCB = new WeakMap(), _template_convertTemplate = new WeakMap(), _template_instances = new WeakSet(), _template_parseSlots = function _template_parseSlots(target, argSlots) {
+    const slots = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].e("slot", target);
+    if (argSlots !== undefined && slots.length != 0)
+        for (let i = 0; i < slots.length; i++) {
+            const attr = slots[i].getAttribute("name"), isHTMLSlot = slots[i].getAttribute("html") === "";
+            if (attr === null || attr === "")
+                continue;
+            for (let j in argSlots)
+                if (j === attr) {
+                    if (isHTMLSlot)
+                        slots[i].innerHTML = argSlots[j];
+                    else
+                        slots[i].innerText = argSlots[j];
+                }
+        }
+    if (slots.length != 0)
+        for (let i = 0; i < slots.length; i++) {
+            const par = slots[i].parentElement;
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].hatch(slots[i], true);
+            par.normalize();
+        }
 };
 
 
@@ -233,27 +271,30 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((() => {
     return {
+        e(s, scope) {
+            if (scope === undefined || !(scope instanceof HTMLElement))
+                scope = document;
+            let a = scope.querySelectorAll(s);
+            if (!a.length)
+                return [];
+            if (a.length == 1 && s.match(/^.*#[^\s]*$/))
+                return a[0];
+            else
+                return Array.from(a);
+        },
         E(argument, type, value) {
             if (argument === undefined)
                 throw new Error("An error occured.");
             else
-                throw new Error(`Argument '${argument}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, received ${value}` : ""}.`);
+                throw new Error(`Argument '${argument}' ${type ? `should be a ${type}` : "is invalid"}${value ? `, got ${value}` : ""}.`);
         },
         EE(message) { throw new Error(message); },
         toHTML(HTML) {
-            const ele = document.createElement("div");
-            var returnA = [];
-            ele.innerHTML = HTML;
             if (HTML === "" || typeof HTML != "string")
                 this.E("HTML", "string", HTML);
-            for (let i = 0; i < ele.childNodes.length; i++)
-                returnA[i] = ele.childNodes[i];
-            return returnA;
-        },
-        toHTMLString(HTML) {
             const ele = document.createElement("div");
-            ele.appendChild(HTML);
-            return ele.innerHTML;
+            ele.innerHTML = HTML;
+            return this.getInnerNodes(ele);
         },
         getInnerNodes(el) {
             var nodes = [];
@@ -441,32 +482,30 @@ class Dynamic {
         this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"));
         this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"));
     }
-    repeat(args) {
-        return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].repeat(args.item, args.count);
+    getOptions() {
+        return __classPrivateFieldGet(this, _Dynamic_options, "f");
     }
     render(args) {
         return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].render(args.HTML, args.element, args.insertAfter, args.append, args.disableDF);
     }
-    e(s) {
-        let a = document.querySelectorAll(s);
-        if (!a.length)
-            return [];
-        if (a.length == 1 && s.match(/^.*#[^\s]*$/))
-            return a[0];
-        else
-            return Array.from(a);
+    repeat(args) {
+        return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].repeat(args.item, args.count);
+    }
+    e(s, scope) {
+        return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].e(s, scope);
+    }
+    toHTML(HTML) {
+        return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].toHTML(HTML);
     }
     hatch(args) {
         return _utils__WEBPACK_IMPORTED_MODULE_2__["default"].hatch(args.element, args.remove);
     }
-    getOptions() {
-        return __classPrivateFieldGet(this, _Dynamic_options, "f");
+    compose() {
     }
 }
 _Dynamic_options = new WeakMap();
 _utils__WEBPACK_IMPORTED_MODULE_2__["default"].constantize(Dynamic);
-const w1ndow = window;
-w1ndow.Dynamic = Dynamic;
+window.Dynamic = Dynamic;
 
 })();
 
