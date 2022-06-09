@@ -122,14 +122,15 @@ class template {
                     var tuid = template.getAttribute("tuid");
                     if (!tuid || !_utils__WEBPACK_IMPORTED_MODULE_0__["default"].checkTUID(tuid))
                         tuid = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].generateTUID();
-                    const el = document.createElement("div");
-                    for (let i = 0; i < template.content.childNodes.length; i++)
-                        el.appendChild(template.content.childNodes[i].cloneNode(true));
+                    const el = document.createElement("div"), children = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].getInnerNodes(template.content);
+                    for (let i = 0; i < children.length; i++)
+                        el.appendChild(children[i]);
                     if (template.getAttribute("dynamic") !== null)
                         template.remove();
                     this.register({
                         element: el,
-                        tuID: tuid
+                        tuID: tuid,
+                        remove: true
                     });
                 }
             };

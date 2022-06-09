@@ -174,14 +174,14 @@ export default class template{
                 var tuid = template.getAttribute("tuid");
                 if(!tuid || !utils.checkTUID(tuid)) tuid = utils.generateTUID();
                 //干掉template的shadow dom
-                const el = document.createElement("div");
-                for(let i = 0; i < template.content.childNodes.length; i++) el.appendChild(template.content.childNodes[i].cloneNode(true));
+                const el = document.createElement("div"), children = utils.getInnerNodes(template.content);
+                for(let i = 0; i < children.length; i++) el.appendChild(children[i]);
                 //提前remove掉dynamic的template
                 if(template.getAttribute("dynamic") !== null) template.remove();
                 this.register({
                     element: el,
-                    tuID: tuid/*,
-                    remove: false 这里不写是因为传入的是游离dom*/
+                    tuID: tuid,
+                    remove: true //这里不写是因为传入的是游离dom //argument:到底写不写？
                 });
             }
         };
