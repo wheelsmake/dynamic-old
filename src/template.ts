@@ -6,11 +6,11 @@ import dataFlow from "./dataFlow";
 import utils from "./utils";
 interface registerArgs{
     element :HTMLElement;
-    tuID? :string;
+    tuID? :tuID;
     remove? :boolean;
 }
 interface renderArgs{
-    tuID :string;
+    tuID :tuID;
     element :HTMLElement;
     slots? :anyObject;
     removeOuterElement? :boolean;
@@ -19,7 +19,7 @@ interface renderArgs{
     disableDF? :boolean;
 }
 interface updateArgs{
-    tuID :string;
+    tuID :tuID;
     element :HTMLElement;
 }
 export default class template{
@@ -81,7 +81,7 @@ export default class template{
         }
         return null;
     }
-    delete(tuID :string) :HTMLElement | null{
+    delete(tuID :tuID) :HTMLElement | null{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID){
             let content = this.#templates[i].content;
             this.#templates.splice(i, 1);
@@ -89,11 +89,11 @@ export default class template{
         }
         return null;
     }
-    getContent(tuID :string) :HTMLElement | null{
+    getContent(tuID :tuID) :HTMLElement | null{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID) return this.#templates[i].content;
         return null;
     }
-    existsTUID(tuID :string) :boolean{
+    existsTUID(tuID :tuID) :boolean{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID) return true;
         return false;
     }
@@ -103,7 +103,7 @@ export default class template{
     }
     //获取所有模板
     getTemplates() :templateObject[]{return this.#templates;}
-    getInstance(tuID :string) /*:instanceObject | instanceObject[]*/{
+    getInstance(tuID :tuID) /*:instanceObject | instanceObject[]*/{
         //todo:传入tuid，获取已实例化的模板列表
         /*return [{
             reference: ,
@@ -115,13 +115,13 @@ export default class template{
     #parseSlots = (target :HTMLElement, argSlots? :anyObject) :void=>{
         const slots = utils.e("slot", target) as HTMLSlotElement[]; //用非id的css选择器就一定返回Node[]
         //console.log(slots);
-        for(let j in argSlots) if(argSlots[j] === undefined) Object.proper
+        for(let j in argSlots) if(argSlots[j] === undefined) delete argSlots[j];  //预先把魔法字扔掉，可以省复杂度
         if(argSlots !== undefined && slots.length != 0) for(let i = 0; i < slots.length; i++){ //用一个attribute比遍整个args.slot
             const attr = slots[i].getAttribute("name"), isHTMLSlot = slots[i].getAttribute("html") === "";
             if(attr === null || attr === "") continue;
             for(let j in argSlots) if(j === attr){
                 const content = argSlots[j];
-                if(content === undefined) continue; //魔法字
+                //if(content === undefined) continue; //魔法字 //预先扔掉省复杂度#L118
                 if(isHTMLSlot) slots[i].innerHTML = content;
                 else slots[i].innerText = content;
             }
@@ -132,7 +132,7 @@ export default class template{
             par.normalize();
         }
     }
-    #getTemplateObject = (tuID :string) :object | null=>{
+    #getTemplateObject = (tuID :tuID) :object | null=>{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID) return this.#templates[i];
         return null;
     }

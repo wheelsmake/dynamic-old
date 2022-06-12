@@ -6,7 +6,8 @@ function aaa(){
         slots:{
             "1":"1号的变量",
             "3":"<span style='color:red;'>我不应该是红色的！</span>",
-            "4":"<span style='color:red;'>我应该是红色的！</span>"
+            "4":"<span style='color:red;'>我应该是红色的！</span>",
+            "2":undefined
         },
         append: true
     });
@@ -23,3 +24,4 @@ function bbb(){
     `;
     dy.e("#test").append(a);
 }
+const a24 = 0;

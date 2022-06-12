@@ -94,6 +94,9 @@ class template {
         _template_observer.set(this, void 0);
         _template_parseSlots.set(this, (target, argSlots) => {
             const slots = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].e("slot", target);
+            for (let j in argSlots)
+                if (argSlots[j] === undefined)
+                    delete argSlots[j];
             if (argSlots !== undefined && slots.length != 0)
                 for (let i = 0; i < slots.length; i++) {
                     const attr = slots[i].getAttribute("name"), isHTMLSlot = slots[i].getAttribute("html") === "";
@@ -102,8 +105,6 @@ class template {
                     for (let j in argSlots)
                         if (j === attr) {
                             const content = argSlots[j];
-                            if (content === undefined)
-                                continue;
                             if (isHTMLSlot)
                                 slots[i].innerHTML = content;
                             else

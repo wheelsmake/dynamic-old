@@ -25,12 +25,12 @@ class Dynamic{
     #options :dynamicOptions;
     template :template;
     dataFlow :dataFlow;
-    _ :anyObject = {};
+    //_ :anyObject = {}; //没搞懂啊
     constructor(options? :dynamicOptions){
         console.warn("Creating new Dynamic instance with options", options);
         this.#options = options;
         this.template = new template(this.#options);
-        this.dataFlow = new dataFlow(this.#options, this._);
+        this.dataFlow = new dataFlow(this.#options/*, this._*/);
         //this.#utils = utils;
     }
     getOptions() :dynamicOptions{
@@ -55,8 +55,8 @@ class Dynamic{
     compose(){
         //todo:
     }
-    n(){
-        return this.dataFlow.createDataNode();
+    n(args :createDataNodeArgs){
+        return this.dataFlow.createDataNode(args);
     }
 }
 utils.constantize(Dynamic);

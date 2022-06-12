@@ -11,10 +11,15 @@ dynamic 只对自己对 DOM 做的事进行优化，开发者大可以写 `for` 
 
 dynamic 接管由其模板创建的实例、由其 `render()` 方法生成的 DOM 和 `dy.dataFlow.new()` 声明的元素。
 
-- 可以指定 dynamic 接管某个元素。接管后任何插入变量将可用。未接管前 dynamic 不会修改 HTML 中的任何东西。
+- 可以指定 dynamic 接管某个元素。接管后任何数据节点将可用。未接管前 dynamic 不会修改 HTML 中的任何东西。
 - 因此仅在需要不同配置时有创建多个 dynamic 实例的需求。
 
 dynamic 的模板引擎基于 `HTMLElement` 类型（即：模板内容只能是**一个非文本或注释**的 DOM 元素）。但是 dynamic 的 DOM 监控引擎基于 `Node[]` 类型。
+
+dynamic 最大的特性就是：在非常重要的新特性或非常大的性能提升前基本不考虑兼容性。dynamic 目前使用的较新 API 有：
+
+- `class` 和私有属性（被 TypeScript 编译消除）
+- `Proxy`
 
 #  开始使用
 
@@ -56,7 +61,7 @@ const dy = new Dynamic(options? :object);
 "asdfg-" //错误，在结尾出现连字符（但却是有效的自定义元素，dynamic为了保持标签美观而将其视为错误。）
 ```
 
-## 注册模板（组件）
+## 注册模板
 
 ### 从 `<template>` 元素
 
@@ -146,9 +151,61 @@ dy.e("#myelement").append(document.createElement("my-tuid"));
 
 - 释放带模板变量的模板：参见[模板变量](#模板变量)。
 
+## 插槽
+
+在 dynamic 中，可以通过 `slot` 元素在模板中插入变量，通过 dynamic ，其在功能与原生几乎相同的同时增强了兼容。
+
+- 模板变量不是数据节点，与[数据流管理](#数据流管理)中的数据节点不是同一个概念。模板变量被设计为一次性的替换。
+- dynamic 处理模板变量的时机是每一次渲染时，使用 `getContent()` 方法仍可以取到原封不动的传入 DOM。
+
+使用渲染方法：
+
+```html
+<template tuid="my-template">
+    <div>
+        <slot name="slot1" html></slot>
+        <p>............<slot name="slot2">default content</slot>.....</p>
+    </div>
+</template>
+```
+
+```typescript
+dy.template.render({
+    tuID: "my-template",
+    element: dy.e("#targetElement"),
+    slots: {
+        "slot1": "<span style='color: red;'>slot1's red HTML content</span>",
+        "slot2": "slot2's content"
+    },
+    removeOuterElement: true,
+    insertAfter: false,
+    append: false,
+    disableDF: false
+});
+```
+
+- 为避免 XSS，需要在 `<slot>` 中特别声明 `html` attribute 才能在模板变量中插入 HTML。插入的 HTML 中的 `<slot>` 无论如何都不会被转换，为了使 dynamic 的行为可预知，请**不要嵌套** `slot` **元素**。（TODO：处理嵌套slot）
+- 没有 `name` attribute 或没有提供与其 `name` attribute 一致的变量内容的 `<slot>` 会被直接转换为文本节点。所以，`<slot>` 若含有内部内容（如上文的 `#slot2`），则其将成为缺省值，在没有提供该 `<slot>` 的变量值而使用模板时将会使用该值。
+- 拥有相同 `name` attribute 的 `<slot>` 在提供了相应 `name` 的值时将共享这一值。
+- 当传入的内容为 `undefined`（`typeof undefined`，`void 0`）时，dynamic 会选择性忽略该 `<slot>`，有利于便捷地书写渲染方法。
+
+释放带模板变量的模板：
+
+```html
+<!--tuID = my-tuid-->
+<my-tuid>
+    <slot name="ass">ass</slot>
+    <slot name="saa">saa</slot>
+</my-tuid>
+```
+
+- 不需要注意书写顺序。dynamic 会自动将模板中的变量与元素中赋值的模板变量进行比对并插入。
+- 模板中无此 `name` 或不具名的 `<slot>` 将被直接丢弃。
+- 当传入的内容为 `undefined`时，dynamic 不会忽略该 `<slot>`，因为它的类型是 `string`。不可能在 HTML 中写出真正的 `undefined` 类型。
+
 ## 其他操作
 
-### 更新一个模板
+### 更新模板
 
 ```typescript
 dy.template.update({
@@ -164,7 +221,7 @@ dy.template.update({
 
 该方法返回旧的模板内容。当不存在相应模板时返回 `null`。
 
-### 删除一个模板
+### 删除模板
 
 ```typescript
 dy.template.delete(tuID :string) :HTMLElement | null;
@@ -239,62 +296,7 @@ dy.template.getTemplates() :object[];
 |   `id`    | 模板的 ID  |
 | `content` | 模板的内容 |
 
-## 模板进阶
-
-### 模板变量
-
-在 dynamic 中，可以通过 `slot` 元素在模板中插入变量，通过 dynamic ，其在功能与原生几乎相同的同时增强了兼容。
-
-- 模板变量不是数据节点，与[数据流管理](#数据流管理)中的数据节点不是同一个概念。模板变量被设计为一次性的替换。
-- dynamic 处理模板变量的时机是每一次渲染时，所以使用 `getContent()` 方法仍可以取到原封不动的传入 DOM。
-- 为避免 XSS，需要在 `<slot>` 中特别声明 `html` attribute 才能在模板变量中插入 HTML。插入的 HTML 中的 `<slot>` 无论如何都不会被转换。为了使 dynamic 的行为可预知，请**不要嵌套** `slot` **元素**。（TODO：处理嵌套slot）
-- 没有 `name` attribute 或没有提供与其 `name` attribute 一致的变量内容的 `<slot>` 会被直接转换为文本节点。所以，`<slot>` 元素若含有内部内容（如上文的 `#slot2`），则其将成为缺省值，在没有提供该 `<slot>` 的变量值而使用模板时将会使用该值。
-- 拥有相同 `name` attribute 的 `<slot>` 共享同一内容。
-- 当传入的内容为 `undefined`（`typeof undefined`）时，dynamic 会选择性忽略该 `slot`，有利于便捷地书写渲染方法。
-
-下面演示一个例子：
-
-```html
-<template tuid="my-template">
-    <div>
-        <slot name="slot1" html></slot>
-        <p>............<slot name="slot2">default content</slot>.....</p>
-    </div>
-</template>
-```
-
-使用：
-
-```typescript
-dy.template.render({
-    tuID: "my-template",
-    element: dy.e("#targetElement"),
-    slots: {
-        "slot1": "<span style='color: red;'>slot1's red HTML content</span>",
-        "slot2": "slot2's content"
-    },
-    removeOuterElement: true,
-    insertAfter: false,
-    append: false,
-    disableDF: false
-});
-```
-
-释放带模板变量的模板：注意模板变量的赋值与顺序无关。dynamic 会自动将模板中的变量与元素中赋值的模板变量进行比对并插入。
-
-- 即使模板中无此模板变量，也不会引发任何问题。
-
-```html
-<!--tuID = my-tuid-->
-<my-tuid>
-    <slot name="ass">ass</slot>
-    <slot name="saa">saa</slot>
-</my-tuid>
-```
-
-- 当传入的内容为 `undefined`时，dynamic 不会忽略该 `slot`，因为它的类型是 `string`。不可能在 HTML 中写出 `undefined` 类型。
-
-### 模板追踪（TODO）
+### 获取一个模板的实例信息（TODO）
 
 获取指定模板的实例：
 
@@ -311,9 +313,9 @@ dy.template.getInstance(tuID :string) :object[];
 ```json
 [
     {
-        reference: [HTMLElement],
+        reference :HTMLElement,
         slots:[
-            slot_name: "slot_value",
+            [slot_name :string] :string,
             ...
         ]
     },
@@ -331,9 +333,11 @@ dy.template.getInstance(tuID :string) :object[];
 
 # 数据流管理（TODO）
 
-## 新建作用域
+## 作用域（TODO）
 
-数据流管理仅在作用域内有效，这样做一是为了防止不同示例的作用域混淆（不过由于 `dfID` 难以重复，即使多个实例有相同的作用域也几乎完全不会造成数据问题，只是性能会下降，并且开发者会看懵），二是减少不必要的性能开销。
+数据流管理仅在作用域内有效，这样做主要是为了减少不必要的性能开销。
+
+### 新建作用域
 
 声明 dynamic 应接管某元素及其后代：
 
@@ -347,94 +351,148 @@ dy.dataFlow.new(element :HTMLElement) :void;
 
 声明后，dynamic 才会识别并转换其中的所有有效数据节点。
 
-## 数据节点
+### 获取所有作用域信息
 
-dynamic 使用节点 + 网结构来管理数据流。
+```typescript
+dy.dataFlow.getScopes() :HTMLElement[];
+```
 
-dynamic 的数据节点使用 `Proxy` 实现。每个数据节点都可以有 `上游节点`（`prevNodes[]`），但是只有 JavaScript 中的数据节点可以有 `下游节点`（`nextNodes[]`），因为 HTML 中的数据节点不能被侦测。因此我们将 HTML 中的数据节点也称为 `导出节点`。
+### 移除作用域
 
-数据节点可以被插入到任何地方，并且可以包含任何 JavaScript 对象。在目前的 dynamic 中，数据节点内容是**动态类型**的。以后可能会更改为**动静混合类型**以提供类型检测功能。
+- dynamic 会自动删除嵌套作用域中较小的那个，不需要手动操作；同时如果需要将作用域变小，请先移除祖先作用域再添加后代作用域，否则后代作用域在添加时会被忽略。
 
-引语中已经将数据节点分为 `导出节点` 和 `非导出节点` 了。可以将数据节点想象为一个容器。
+```
+dy.dataFlow.deleteScope(identity :HTMLElement | number) :HTMLElement | null;
+```
+
+|    参数    |                             描述                             |
+| :--------: | :----------------------------------------------------------: |
+| `identity` | 要删除的元素或要删除的元素在 `dy.dataFlow.getScopes() ` 中的索引 |
+
+该方法返回作用域元素，当不存在相应作用域时返回 `null`。
+
+## 数据节点（TODO）
+
+dynamic 使用数据节点 + 网结构来管理数据流。数据节点使用 `Proxy` 实现。
+
+数据节点可以包含任何 JavaScript 对象。在目前的 dynamic 中，数据节点内容是**动态类型**的。以后可能会更改以提供类型检测功能。
+
+数据节点分为两种：一种是 `处理节点`，又称普通节点，存在于 JavaScript 中
+
+每个数据节点都可以有 `上游节点`（`prevNodes[]`），但是只有 JavaScript 中的数据节点可以有 `下游节点`（`nextNodes[]`），因为 HTML 中的数据节点不能被侦测。因此我们将 HTML 中的数据节点也称为 `导出节点`。
+
+可以将数据节点想象为一个容器。
 
 ```mermaid
 graph LR
 Proxy=="get()"==>nextNodes
 getProcessor--"get()"-->Proxy
-objectStore--"get()"-->getProcessor
+source--"get()"-->getProcessor
 prevNodes=="set()"==>Proxy
 Proxy--"set()"-->setProcessor
-setProcessor--"set()"-->objectStore
+setProcessor--"set()"-->source
 setProcessor--recordState-->stateStore
 stateStore--recoverState-->setProcessor
 箭头代表数据的流动方向
 ```
 
-数据节点由对象存储区 `ObjectStore`、代理 `Proxy`、处理方法 `processor`、节点信息和状态存储区 `stateStore` 组成。
+数据节点由对象来源 `source`、代理 `Proxy`、处理方法 `processor`、节点信息和状态存储区 `stateStore` 组成。
 
-## 创建数据节点
+## 创建数据节点（TODO）
+
+本来的方法叫做 `dy.dataFlow.createDataNode()`，但是考虑到这个方法非常常用，dynamic 提供了一个捷径：`dy.n()`。
 
 ```typescript
-dy.dataFlow.createDataNode({
-    objectStore :any,
+dy.n({
+    name :string,
+    scope? :string,
+    source :any,
     setProcessor? :Function,
     getProcessor? :Function,
-    alias? :string,
-    tag? :string[]
+    prevTags? : string[],
+    nextTags? :string[]
 });
 ```
 
 |      参数      |                             描述                             |
 | :------------: | :----------------------------------------------------------: |
-| `objectStore`  | 真正的数据所在的地方，可以直接是数据、是变量或者是某个对象的属性 |
+|     `name`     |                           调用名称                           |
+|    `scope`     |               分组，详见[下文](#数据节点分组)                |
+|    `source`    | 真正的数据所在的地方，可以直接是数据、是变量或者是某个对象的属性 |
 | `setProcessor` |                  设置数据时对数据的处理方法                  |
 | `getProcessor` |                  读取数据时对数据的处理方法                  |
-|    `alias`     |                   节点的别名，用于创建捷径                   |
-|     `tag`      |                                                              |
+|   `prevTags`   |               标签数组，用于快速连接到上游节点               |
+|   `nextTags`   |               标签数组，用于快速连接到下游节点               |
 
 - 注意这里的 `get` `set` 是相对于**数据本身**来说的。可以参见上面的流程图。
 
-## 关于 `dfID`
+`name` 调用名称必须只能含有数字、小写字母或下划线，并且数字不能出现在第一位。这样的规则是为了兼容 JavaScript 变量名与 HTML attribute。
 
-每个节点都有独一无二的 ID，称为 `dfID`。有效 `dfID` 是长度不小于 8 位的字符串，前 5 位为固定字符串 `dfid-`，后为**小写字母或数字**。
+`source` 可以是任何值，如果传入的值是一个引用，那么需要注意的是**直接修改**原本的数据时 dynamic 无法检测到变动，从而也无法响应式流转数据。建议直接新建一个。但是如果真的要修改原本的数据也有告诉 dynamic 的方法，见[下文](#被动检测)。
 
-此规范的目的是能将每一个 `dfID` 放入 HTML 文档的任意部位，包括：标签名、属性名、属性值、内容。
+### 数据节点分组（TODO）
 
-当 dynamic 自动生成 `dfID` 时，其长度总是为 29 字符，因为 dynamic 的开发者是 LJM1**29**14。总共可能生成 2.25e+37 个 `dfID`，基本不用担心碰撞，并有[碰撞检测](#enableAntiClash)功能（需在 `options` 参数中设置）。
+有时需要用到两个同名数据节点。这时可以将它们分入不同的 `组` 内，组本身也是一个数据节点，用数据节点获取数据节点的数据了属于是。按照这个思路完全可以自己封装一个 API，但 dynamic 已经封装好了。调用创建节点的方法时，如果指定了 `scope` 参数，则 dynamic 将自动创建一个分组。
 
+## 被动检测（TODO）
 
+由于 JavaScript 的诸多限制，根本不可能做到完全的将数据保存在外部并全程主动检测数据。dynamic 选择了前者而牺牲了全程主动检测数据变动的能力，但是没关系，还有被动检测呢。告诉 dynamic 应查看数据的变动：
 
-
-
-
-
-## 利用数据流简化操作
-
-在之前已经出现过一些声明式指令：`<template>` 的 `tuID` 和 `dynamic`。
-
-### 动态替换 attribute
-
-```html
-<div :id="dfID"></div>
+```typescript
+dy.dataFlow.updateData(scope.name? :any) :object;
 ```
 
-和 Vue 的简化 API 一模一样。
+|     参数     |                 描述                 |
+| :----------: | :----------------------------------: |
+| `scope.name` | （带分组的）调用名称，不写则全部遍历 |
 
-其实就是给 div 的 `id` 属性绑定了一个数据节点。然后用 JavaScript 连接节点，即可控制这个 div 的 `id` 属性。
+## 创建导出数据节点（TODO）
 
-### 是否显示这个 DOM
+一般来说导出节点都是 dynamic 自己根据 HTML 中的声明式标记生成的，但是如果就是不想在 HTML 中写这些奇怪的东西，那么手动创建一个导出数据节点能帮到你。
 
-```html
-<div :style="display: {{dfID}}"></div>
+```typescript
+dy.dataFlow.createExportDataNode({
+    target :HTMLElement,
+    prevTags? :string[],
+    exportProcessor :(target) => void
+}) :string;
 ```
 
-其实和上面的一模一样。dynamic 不会将 HTML 文档中的字符串的一部分识别为有效 `dfID`，若要达到上面的插值效果，需要给 `dfID` 两侧添加 `{{}}` 双大括号来指示 dynamic。
+| 参数 |     描述      |
+| :--: | :-----------: |
+| `id` | 导出节点的 ID |
 
-或者也可以通过一个数据处理节点处理字符串插值后再流动到 HTML 文档中，此时由于整个字符串都是 `dfID` 内容，故不需要添加指示：
+## 声明式 HTML（TODO）
+
+看框架的文档时，这个部分是我最不喜欢的部分。虽然能简化操作，但需要学习不同的奇怪语法，并且还有更加奇怪的互相限制。dynamic 中简化语法势在必行。它的声明式语法确实很简单，只有一种语法：`::dataNode::`。
+
+在之前已经出现过一些声明式 HTML attribute：`<template>` 的 `tuID` 和 `dynamic`。这些**不属于**这里所说声明式 HTML 的范畴。声明式 HTML 是基于 `导出数据节点`（名词）的。
 
 ```html
-<div :style="dfID"></div>
+<div id="::data1::"></div>
 ```
+
+其实就是给 div 的 `id` 属性绑定了一个导出数据节点。然后用 JavaScript 连接节点，即可使这个 div 的 `id` 属性被动态更改。
+
+叠满 buff：
+
+```html
+<div ::scope4.data2::="::scope3.data3::">::scope2.data4::</div>
+```
+
+- 不考虑动态标签名，因为可能导致很严重的 XSS，并要进行 DOM 的销毁和重建。
+
+最佳实践推荐：HTML 文档只负责接收导出的数据，所有工作都在 JavaScript（准确地说是在数据节点的 `getProcessor` 和 `setProcessor`）中完成。当然这里确实可以插入一些 JavaScript 表达式，但强烈不推荐这样做。
+
+不要学习下文这个例子！
+
+```html
+<div ::scope4.data2 + "1"::="::scope3.data3.reverse()::">
+    ::scope2.data4 ? scope2.data4 : "empty" ::
+</div>
+```
+
+如果对这种有点奇怪（但是确实没有违反 HTML 标准！）的语法感到不舒适或者有其他需求（如纯 HTML 可用性保证），也可以使用手动创建导出节点的方案，见[上文](#创建导出数据节点)。
 
 # 其他工具
 
@@ -567,15 +625,14 @@ const dy = new Dynamic(options);
 
 下面是对 `options` 对象的有效属性的描述，注意所有属性都是**可选的**。无效的属性将被 dynamic 忽略。
 
-|                   有效属性                    |                           类型                            |               描述               |
-| :-------------------------------------------: | :-------------------------------------------------------: | :------------------------------: |
-|           [`rootScope`](#rootScope)           |                       `HTMLElement`                       |   创建实例时顺便指定一个作用域   |
-|     [`enableAntiClash`](#enableAntiClash)     |                         `boolean`                         |         是否开启碰撞检测         |
-|      [`clashHandler`](#enableAntiClash)       | `(type :string, args :object, clashee :object) => string` |           碰撞处理方法           |
-|   [`multiNextDataNode`](#multiNextDataNode)   |                         `boolean`                         | 是否允许数据节点存在多个下级节点 |
-| [`renderSecurityLevel`](#renderSecurityLevel) |                      `0 | 1 | 2 | 3`                      |        渲染 HTML 安全级别        |
-|    [`bannedTagName`](#renderSecurityLevel)    |                        `string[]`                         |       禁止渲染的 HTML 标签       |
-|      [`tInstanceLimit`](#tInstanceLimit)      |                         `number`                          |      限制模板实例的保存数量      |
+|                   有效属性                    |                           类型                            |             描述             |
+| :-------------------------------------------: | :-------------------------------------------------------: | :--------------------------: |
+|           [`rootScope`](#rootScope)           |                       `HTMLElement`                       | 创建实例时顺便指定一个作用域 |
+|     [`enableAntiClash`](#enableAntiClash)     |                         `boolean`                         |       是否开启碰撞检测       |
+|      [`clashHandler`](#enableAntiClash)       | `(type :string, args :object, clashee :object) => string` |         碰撞处理方法         |
+| [`renderSecurityLevel`](#renderSecurityLevel) |                      `0 | 1 | 2 | 3`                      |      渲染 HTML 安全级别      |
+|    [`bannedTagName`](#renderSecurityLevel)    |                        `string[]`                         |     禁止渲染的 HTML 标签     |
+|      [`tInstanceLimit`](#tInstanceLimit)      |                         `number`                          |    限制模板实例的保存数量    |
 
 ## rootScope
 
@@ -583,31 +640,22 @@ const dy = new Dynamic(options);
 
 ## enableAntiClash
 
-任意两个模板的 `tuID` 和相连的数据节点的 `dfID` 均不应该重复，并且由于极低的碰撞概率，它们一般也不会重复。但对于拥有许多模板和数据节点的大型程序来说，这貌似有可能，并且考虑到一些开发者愿意用性能换强迫症的开心，所以提供了碰撞检测功能。
+任意两个模板的 `tuID` 均不应该重复，并且由于极低的碰撞概率，它们一般也不会重复。但对于拥有许多模板的大型程序来说，这好像似乎大概貌似应该有可能，考虑到一些开发者愿意用性能换强迫症的开心，所以提供了碰撞检测功能。
 
 将 `enableAntiClash` 设为 `true` 即可打开。此时也必须设置 `clashHandler` 方法，dynamic 的调用参数如下：
 
 ```typescript
-clashHandler(type :string, args :object, clashee :object) :string;
+clashHandler(args :object, clashee :object) :string;
 ```
 
-|   参数    |                    描述                    |
-| :-------: | :----------------------------------------: |
-|  `type`   | `tuID`：模板的碰撞；`dfID`：数据节点的碰撞 |
-|  `args`   |        调用注册方法时传入的参数对象        |
-| `clashee` |              原有的同 ID 实例              |
+|   参数    |             描述             |
+| :-------: | :--------------------------: |
+|  `args`   | 调用注册方法时传入的参数对象 |
+| `clashee` |       原有的同 ID 实例       |
 
-该方法期望的返回值是有效的 `tuID` 或 `dfID`。dynamic 仍会对 `tuID` 或 `dfID` 的有效性做检查，若无效，则抛出异常。若再次碰撞，则再次调用该方法，直至成功。
+该方法期望的返回值是有效的 `tuID`。dynamic 仍会对 `tuID` 的有效性做检查，若无效，则抛出异常。若再次碰撞，则再次调用该方法，直至成功。
 
 碰撞检测会消耗一些性能，在每一次创建新实例时进行 ID 检查。
-
-## multiNextDataNode
-
-> 该计划即将被弃用，太没意思了。
-
-dynamic 默认只允许数据节点存在一个下级节点，因为多下级节点的情况并不是经常发生，并且会大量耗费性能。如果所有数据节点都只存在一个下级节点，那么 dynamic 就会使用非典型的较高效的网络图对数据流进行处理。
-
-- 没有说不允许数据节点存在多个上级节点，不然数据网变数据链了，多没意思。
 
 ## renderSecurityLevel
 
@@ -631,11 +679,11 @@ dynamic 默认只允许数据节点存在一个下级节点，因为多下级节
 
 ## tInstanceLimit
 
-dynamic 在渲染每一个模板后都会记录下有关数据，但是这些数据少有用处。在需要渲染海量模板的页面上，这还会导致性能下降。但这可以通过修改 `tInstanceLimit` 解决，它限制了能同时存在的模板实例的最大值。一旦突破这个值，dynamic 就会删除当前最早的实例。设为 0 以完全禁用保存模板实例功能。设为 -1（默认值）以取消对模板实例数量的限制。
+dynamic 在渲染每一个模板后都会记录有关数据，但是这些数据少有用处，在需要渲染海量模板的页面上还会导致性能下降。这可以通过修改 `tInstanceLimit` 解决，它限制了能同时存在的模板实例的最大值。一旦突破这个值，dynamic 就会删除当前最早的实例记录。设为 0 以完全禁用保存模板实例数据功能。设为 -1（默认值）以取消对模板实例记录数量的限制。
 
 # 补充说明
 
-### 可以浏览 [`tests/`](tests) 和 [`sample_projects/`](sample_projects) 目录中的示例项目！
+### [`tests/`](tests) 和 [`sample_projects/`](sample_projects) 目录中的示例项目能解决很多疑惑！
 
 ## 开发背景与设计意图
 

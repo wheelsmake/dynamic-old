@@ -9,10 +9,10 @@ export default class dataFlow{
     #dfScopes :HTMLElement[] = [];
     #dataNodes :dataNode[] = [];
     #observer :MutationObserver;
-    #_ :anyObject = {};
-    constructor(options :dynamicOptions, _ :anyObject){
+    //#_ :anyObject = {};
+    constructor(options :dynamicOptions/*, _ :anyObject*/){
         this.#options = options;
-        this.#_ = _;
+        //this.#_ = _;
         this.#observer = new MutationObserver(this.#observerCB);
         this.#observer.observe(document.body,{
             childList: true,
@@ -26,11 +26,15 @@ export default class dataFlow{
         for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(this.#dfScopes[i], element)) utils.precisePop(this.#dfScopes[i], this.#dfScopes);
         this.#dfScopes.push(element);
     }
-    createDataNode(){
+    createDataNode(args :createDataNodeArgs){
         
     }
+
     connect(node1 :dataNode, node2 :dataNode){
 
+    }
+    #createExportDataNode = ()=>{
+        
     }
     #observerCB = (resultList :MutationRecord[], observer :MutationObserver) :void=>{
         //seize:

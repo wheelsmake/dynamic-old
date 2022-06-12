@@ -1,5 +1,4 @@
 const path = require("path");
-const isMinify = process.env.MINIFY;
 module.exports = {
     mode: "development",
     optimization: {
@@ -18,10 +17,11 @@ module.exports = {
         ]
     },
     module: {
-        rules:[{
+        rules: [{
             test: /\.ts$/,
             use: "ts-loader",
             exclude: /node_modules/
         }]
-    }
-}
+    },
+    plugins: []
+};
