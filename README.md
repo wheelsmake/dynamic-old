@@ -333,7 +333,7 @@ dy.template.getInstance(tuID :string) :object[];
 
 # 数据流管理（TODO）
 
-## 作用域（TODO）
+## 作用域
 
 数据流管理仅在作用域内有效，这样做主要是为了减少不必要的性能开销。
 
