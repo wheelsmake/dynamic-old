@@ -21,19 +21,32 @@ export default class dataFlow{
     }
     new(element :HTMLElement) :void{
         //排除已经是目前作用域或目前作用域子元素的新增
-        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(element, this.#dfScopes[i]) || element === this.#dfScopes[i]) return;
+        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(element, this.#dfScopes[i]) || element === this.#dfScopes[i]) return; //todo:抛出警告
         //排除原数组中是新增作用域子元素的元素
         for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(this.#dfScopes[i], element)) utils.precisePop(this.#dfScopes[i], this.#dfScopes);
         this.#dfScopes.push(element);
+        this.#convertExportDataNode(element);
+    }
+    getScopes() :HTMLElement[]{ //todo:记得review一下，在学校干的
+        return this.#dfScopes;
+    }
+    deleteScope(identity :HTMLElement | number) :HTMLElement | null{ //todo:记得review一下，在学校干的
+        if(identity instanceof HTMLElement){
+            identity = this.#dfScopes.indexOf(identity);
+            if(identity == -1) return null;
+        }
+        return this.#dfScopes.splice(identity, 1)[0];
     }
     createDataNode(args :createDataNodeArgs){
         
     }
-
+    createExportDataNode() :string{
+        
+    }
     connect(node1 :dataNode, node2 :dataNode){
 
     }
-    #createExportDataNode = ()=>{
+    #convertExportDataNode = (element :HTMLElement) :void=>{
         
     }
     #observerCB = (resultList :MutationRecord[], observer :MutationObserver) :void=>{
