@@ -1,6 +1,6 @@
 ﻿/* dynamic
  * ©2022 LJM12914. https://github.com/openink/dynamic
- * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
+ * Licensed under MIT License. https://github.com/openink/dynamic/blob/main/LICENSE
 */
 type anyObject = Record<string, any>;
 type dynamicOptions = { //last update: 2022.6.9 15:28

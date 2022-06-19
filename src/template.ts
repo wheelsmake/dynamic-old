@@ -1,6 +1,6 @@
 ﻿/* dynamic
  * ©2022 LJM12914. https://github.com/openink/dynamic
- * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
+ * Licensed under MIT License. https://github.com/openink/dynamic/blob/main/LICENSE
 */
 import dataFlow from "./dataFlow";
 import utils from "./utils";

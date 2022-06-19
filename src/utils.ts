@@ -1,6 +1,6 @@
 ﻿/* dynamic
  * ©2022 LJM12914. https://github.com/openink/dynamic
- * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
+ * Licensed under MIT License. https://github.com/openink/dynamic/blob/main/LICENSE
 */
 export default (()=>{
     return{
@@ -63,7 +63,7 @@ export default (()=>{
         checkTUID(id :string) :boolean{
             const preservedIDs :string[] = ["annotation-xml","color-profile","font-face","font-face-src","font-face-uri","font-face-format","font-face-name","missing-glyph"];
             var isValid = !!id.match("^[a-z0-9][a-z0-9-]+[a-z0-9]$");
-            //if(!isValid) console.warn(`The specified tuID is invalid: ${id}. Dynamic is going to generate one instead.`);
+            //if(!isValid) console.warn(`The specified tuID is invalid: ${id}. dynamic is going to generate one instead.`);
             if(preservedIDs.indexOf(id) != -1) this.EE(`The specified tuID is one of the preserved element names: ${id}. See https://html.spec.whatwg.org/#valid-custom-element-name for help.`);
             return isValid;
         },

@@ -1,6 +1,6 @@
 ﻿/* dynamic
  * ©2022 LJM12914. https://github.com/openink/dynamic
- * Licensed under Apache 2.0 License. https://github.com/openink/dynamic/blob/main/LICENSE
+ * Licensed under MIT License. https://github.com/openink/dynamic/blob/main/LICENSE
 */
 import template from "./template";
 import utils from "./utils";
@@ -21,7 +21,10 @@ export default class dataFlow{
     }
     new(element :HTMLElement) :void{
         //排除已经是目前作用域或目前作用域子元素的新增
-        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(element, this.#dfScopes[i]) || element === this.#dfScopes[i]) return; //todo:抛出警告
+        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(element, this.#dfScopes[i]) || element === this.#dfScopes[i]){
+            console.warn(`${element} is already a descendant of an exist scope, thus dynamic won't add it.`);
+            return;
+        }
         //排除原数组中是新增作用域子元素的元素
         for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(this.#dfScopes[i], element)) utils.precisePop(this.#dfScopes[i], this.#dfScopes);
         this.#dfScopes.push(element);
@@ -40,7 +43,7 @@ export default class dataFlow{
     createDataNode(args :createDataNodeArgs){
         
     }
-    createExportDataNode() :string{
+    createExportDataNode() /*:string*/{
         
     }
     connect(node1 :dataNode, node2 :dataNode){

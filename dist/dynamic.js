@@ -24,19 +24,19 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _dataFlow_options, _dataFlow_dfScopes, _dataFlow_dataNodes, _dataFlow_observer, _dataFlow__, _dataFlow_observerCB;
+var _dataFlow_options, _dataFlow_dfScopes, _dataFlow_dataNodes, _dataFlow_observer, _dataFlow_convertExportDataNode, _dataFlow_observerCB;
 
 class dataFlow {
-    constructor(options, _) {
+    constructor(options) {
         _dataFlow_options.set(this, void 0);
         _dataFlow_dfScopes.set(this, []);
         _dataFlow_dataNodes.set(this, []);
         _dataFlow_observer.set(this, void 0);
-        _dataFlow__.set(this, {});
+        _dataFlow_convertExportDataNode.set(this, (element) => {
+        });
         _dataFlow_observerCB.set(this, (resultList, observer) => {
         });
         __classPrivateFieldSet(this, _dataFlow_options, options, "f");
-        __classPrivateFieldSet(this, _dataFlow__, _, "f");
         __classPrivateFieldSet(this, _dataFlow_observer, new MutationObserver(__classPrivateFieldGet(this, _dataFlow_observerCB, "f")), "f");
         __classPrivateFieldGet(this, _dataFlow_observer, "f").observe(document.body, {
             childList: true,
@@ -51,13 +51,27 @@ class dataFlow {
             if (_utils__WEBPACK_IMPORTED_MODULE_0__["default"].isDescendant(__classPrivateFieldGet(this, _dataFlow_dfScopes, "f")[i], element))
                 _utils__WEBPACK_IMPORTED_MODULE_0__["default"].precisePop(__classPrivateFieldGet(this, _dataFlow_dfScopes, "f")[i], __classPrivateFieldGet(this, _dataFlow_dfScopes, "f"));
         __classPrivateFieldGet(this, _dataFlow_dfScopes, "f").push(element);
+        __classPrivateFieldGet(this, _dataFlow_convertExportDataNode, "f").call(this, element);
     }
-    createDataNode() {
+    getScopes() {
+        return __classPrivateFieldGet(this, _dataFlow_dfScopes, "f");
+    }
+    deleteScope(identity) {
+        if (identity instanceof HTMLElement) {
+            identity = __classPrivateFieldGet(this, _dataFlow_dfScopes, "f").indexOf(identity);
+            if (identity == -1)
+                return null;
+        }
+        return __classPrivateFieldGet(this, _dataFlow_dfScopes, "f").splice(identity, 1)[0];
+    }
+    createDataNode(args) {
+    }
+    createExportDataNode() {
     }
     connect(node1, node2) {
     }
 }
-_dataFlow_options = new WeakMap(), _dataFlow_dfScopes = new WeakMap(), _dataFlow_dataNodes = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow__ = new WeakMap(), _dataFlow_observerCB = new WeakMap();
+_dataFlow_options = new WeakMap(), _dataFlow_dfScopes = new WeakMap(), _dataFlow_dataNodes = new WeakMap(), _dataFlow_observer = new WeakMap(), _dataFlow_convertExportDataNode = new WeakMap(), _dataFlow_observerCB = new WeakMap();
 
 
 /***/ }),
@@ -517,11 +531,10 @@ console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou 
 class Dynamic {
     constructor(options) {
         _Dynamic_options.set(this, void 0);
-        this._ = {};
         console.warn("Creating new Dynamic instance with options", options);
         __classPrivateFieldSet(this, _Dynamic_options, options, "f");
         this.template = new _template__WEBPACK_IMPORTED_MODULE_0__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"));
-        this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"), this._);
+        this.dataFlow = new _dataFlow__WEBPACK_IMPORTED_MODULE_1__["default"](__classPrivateFieldGet(this, _Dynamic_options, "f"));
     }
     getOptions() {
         return __classPrivateFieldGet(this, _Dynamic_options, "f");
@@ -543,8 +556,8 @@ class Dynamic {
     }
     compose() {
     }
-    n() {
-        return this.dataFlow.createDataNode();
+    n(args) {
+        return this.dataFlow.createDataNode(args);
     }
 }
 _Dynamic_options = new WeakMap();
