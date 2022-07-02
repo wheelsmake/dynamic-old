@@ -7,8 +7,8 @@ import dataFlow from "./dataFlow";
 import * as utils from "../../utils/index";
 import * as localUtils from "./utils";
 interface renderArgs{
-    HTML :string | HTMLElement | HTMLCollection | Node | NodeList | Node[];
-    element :HTMLElement;
+    HTML :string | Element | HTMLCollection | Node | NodeList | Node[];
+    element :Element;
     insertAfter? :boolean;
     append? :boolean;
     disableDF? :boolean;
@@ -18,7 +18,7 @@ interface repeatArgs{
     count :number;
 }
 interface hatchArgs{
-    element :HTMLElement;
+    element :Element;
     remove? :boolean;
 }
 console.warn("dynamic.js ©LJM12914. https://github.com/openink/dynamic \r\nYou are using an unminified version of dynamic.js, which is not suitable for production use.");
@@ -44,7 +44,7 @@ class Dynamic{
     repeat(args :repeatArgs) :any[]{
         return utils.generic.repeat(args.item, args.count);
     }
-    e(s :string, scope? :HTMLElement | Document) :Node[] | Node{
+    e(s :string, scope? :Element | Document) :Node[] | Node{
         return utils.element.e(s, scope);
     }
     toHTML(HTML :string) :Node[]{

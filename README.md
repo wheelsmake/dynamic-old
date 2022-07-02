@@ -5,16 +5,14 @@
 
 dynamic 实例在创建时**不会主动接管任何 DOM 元素**，也**不会生成 vDOM**。
 
-dynamic 只对自己对 DOM 做的事进行优化，开发者大可以写 `for` 循环应用模板。
-
-- 正确的方案是调用 dynamic 的[重复 DOM 操作优化](#重复 DOM 操作优化)方法。
+dynamic 只对自己对 DOM 做的事进行优化，并且不会独占 DOM 的控制权。开发者大可以自己绕过 dynamic 控制 DOM。
 
 dynamic 接管由其模板创建的实例、由其 `render()` 方法生成的 DOM 和 `dy.dataFlow.new()` 声明的元素。
 
 - 可以指定 dynamic 接管某个元素。接管后任何数据节点将可用。未接管前 dynamic 不会修改 HTML 中的任何东西。
 - 因此仅在需要不同配置时有创建多个 dynamic 实例的需求。
 
-dynamic 的模板引擎基于 `HTMLElement` 类型（即：模板内容只能是**一个非文本或注释**的 DOM 元素）。但是 dynamic 的 DOM 监控引擎基于 `Node[]` 类型。
+dynamic 的模板引擎基于 `Element` 类型（即：模板内容只能是**一个非文本或注释**的 DOM 节点）。但是 dynamic 的 DOM 监控引擎基于 `Node[]` 类型。
 
 dynamic 最大的特性就是：在非常重要的新特性或非常大的性能提升前基本不考虑兼容性。dynamic 目前使用的较新 API 有：
 
@@ -82,7 +80,7 @@ dynamic 会默认转换文档中所有的 `<template>` 元素为 dynamic 模板�
 
 ```typescript
 dy.template.register({
-    element :HTMLElement,
+    element :Element,
     tuID? :string,
     remove? :boolean
 }) :string;
@@ -111,7 +109,7 @@ dy.template.register({
 ```typescript
 dy.template.render({
     tuID :string,
-    element :HTMLElement,
+    element :Element,
     slots? :Record<string, any>,
     removeOuterElement? :boolean,
     insertAfter? :boolean,
@@ -210,8 +208,8 @@ dy.template.render({
 ```typescript
 dy.template.update({
     tuID :string,
-    element :HTMLElement
-}) :HTMLElement | null;
+    element :Element
+}) :Element | null;
 ```
 
 |   参数    |           描述           |
@@ -224,7 +222,7 @@ dy.template.update({
 ### 删除模板
 
 ```typescript
-dy.template.delete(tuID :string) :HTMLElement | null;
+dy.template.delete(tuID :string) :Element | null;
 ```
 
 |  参数  |   描述    |
@@ -236,7 +234,7 @@ dy.template.delete(tuID :string) :HTMLElement | null;
 ### 获取模板内容
 
 ```typescript
-dy.template.getContent(tuID :string) :HTMLElement | null;
+dy.template.getContent(tuID :string) :Element | null;
 ```
 
 |  参数  |   描述    |
@@ -262,7 +260,7 @@ dy.template.existsTUID(tuID :string) :boolean;
 ### 检查一个模板内容是否存在
 
 ```typescript
-dy.template.existsElement(element :HTMLElement) :string | null;
+dy.template.existsElement(element :Element) :string | null;
 ```
 
 |   参数    |      描述      |
@@ -285,7 +283,7 @@ dy.template.getTemplates() :object[];
 [
     {
         id: "tuid",
-        content: [HTMLElement]
+        content: [Element]
     },
     ...
 ]
@@ -313,7 +311,7 @@ dy.template.getInstance(tuID :string) :object[];
 ```json
 [
     {
-        reference :HTMLElement,
+        reference :Element,
         slots:[
             [slot_name :string] :string,
             ...
@@ -342,7 +340,7 @@ dy.template.getInstance(tuID :string) :object[];
 声明 dynamic 应接管某元素及其后代：
 
 ```typescript
-dy.dataFlow.new(element :HTMLElement) :void;
+dy.dataFlow.new(element :Element) :void;
 ```
 
 |   参数    |     描述     |
@@ -354,7 +352,7 @@ dy.dataFlow.new(element :HTMLElement) :void;
 ### 获取所有作用域信息
 
 ```typescript
-dy.dataFlow.getScopes() :HTMLElement[];
+dy.dataFlow.getScopes() :Element[];
 ```
 
 ### 移除作用域
@@ -362,7 +360,7 @@ dy.dataFlow.getScopes() :HTMLElement[];
 - dynamic 会自动删除嵌套作用域中较小的那个，不需要手动操作；同时如果需要将作用域变小，请先移除祖先作用域再添加后代作用域，否则后代作用域在添加时会被忽略。
 
 ```
-dy.dataFlow.deleteScope(identity :HTMLElement | number) :HTMLElement | null;
+dy.dataFlow.deleteScope(identity :Element | number) :Element | null;
 ```
 
 |    参数    |                             描述                             |
@@ -452,7 +450,7 @@ dy.dataFlow.updateData(scope.name? :any) :object;
 
 ```typescript
 dy.dataFlow.createExportDataNode({
-    target :HTMLElement,
+    target :Element,
     prevTags? :string[],
     exportProcessor :(target) => void
 }) :string;
@@ -504,8 +502,8 @@ dy.dataFlow.createExportDataNode({
 
 ```typescript
 dy.render({
-    HTML :string | HTMLElement | HTMLCollection | HTMLElement[] | Node | NodeList | Node[],
-    element :HTMLElement,
+    HTML :string | Element | HTMLCollection | Element[] | Node | NodeList | Node[],
+    element :Element,
     insertAfter? :boolean,
     append? :boolean,
     disableDF? :boolean
@@ -546,7 +544,7 @@ dy.repeat({
 > 从 [`luery`](https://github.com/ljm12914/luery) 处直接复制粘贴的代码。
 
 ```typescript
-dy.e(s :string, scope? :HTMLElement | Document) :Node[] | Node;
+dy.e(s :string, scope? :Element | Document) :Node[] | Node;
 ```
 
 |  参数   |                     描述                      |
@@ -576,7 +574,7 @@ dy.toHTML(HTML :string) :Node[];
 
 ```typescript
 dy.hatch({
-    element :HTMLElement,
+    element :Element,
     remove? :boolean
 }) :Node[]
 ```
@@ -627,7 +625,7 @@ const dy = new Dynamic(options);
 
 |                   有效属性                    |                           类型                            |             描述             |
 | :-------------------------------------------: | :-------------------------------------------------------: | :--------------------------: |
-|           [`rootScope`](#rootScope)           |                       `HTMLElement`                       | 创建实例时顺便指定一个作用域 |
+|           [`rootScope`](#rootScope)           |                         `Element`                         | 创建实例时顺便指定一个作用域 |
 |     [`enableAntiClash`](#enableAntiClash)     |                         `boolean`                         |       是否开启碰撞检测       |
 |      [`clashHandler`](#enableAntiClash)       | `(type :string, args :object, clashee :object) => string` |         碰撞处理方法         |
 | [`renderSecurityLevel`](#renderSecurityLevel) |                      `0 | 1 | 2 | 3`                      |      渲染 HTML 安全级别      |

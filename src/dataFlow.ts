@@ -7,7 +7,7 @@ import * as utils from "../../utils/index";
 import * as localUtils from "./utils";
 export default class dataFlow{
     #options :dynamicOptions;
-    #dfScopes :HTMLElement[] = [];
+    #dfScopes :Element[] = [];
     #dataNodes :dataNode[] = [];
     #observer :MutationObserver;
     //#_ :anyObject = {};
@@ -20,7 +20,7 @@ export default class dataFlow{
             subtree: true
         });
     }
-    new(element :HTMLElement) :void{
+    new(element :Element) :void{
         //排除已经是目前作用域或目前作用域子元素的新增
         for(let i = 0; i < this.#dfScopes.length; i++) if(utils.element.isDescendant(element, this.#dfScopes[i]) || element === this.#dfScopes[i]){
             console.warn(`${element} is already a descendant of an exist scope, thus dynamic won't add it.`);
@@ -31,11 +31,11 @@ export default class dataFlow{
         this.#dfScopes.push(element);
         this.#convertExportDataNode(element);
     }
-    getScopes() :HTMLElement[]{ //todo:记得review一下，在学校干的
+    getScopes() :Element[]{ //todo:记得review一下，在学校干的
         return this.#dfScopes;
     }
-    deleteScope(identity :HTMLElement | number) :HTMLElement | null{ //todo:记得review一下，在学校干的
-        if(identity instanceof HTMLElement){
+    deleteScope(identity :Element | number) :Element | null{ //todo:记得review一下，在学校干的
+        if(identity instanceof Element){
             identity = this.#dfScopes.indexOf(identity);
             if(identity == -1) return null;
         }
@@ -50,7 +50,7 @@ export default class dataFlow{
     connect(node1 :dataNode, node2 :dataNode){
 
     }
-    #convertExportDataNode = (element :HTMLElement) :void=>{
+    #convertExportDataNode = (element :Element) :void=>{
         
     }
     #observerCB = (resultList :MutationRecord[], observer :MutationObserver) :void=>{

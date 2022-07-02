@@ -6,7 +6,7 @@ type anyObject = Record<string, any>;
 type kvObject = Record<string, string | undefined | null>;
 type SSkvObject = Record<string, string>;
 type dynamicOptions = { //last update: 2022.6.9 15:28
-    rootScope? :HTMLElement;
+    rootScope? :Element;
     enableAntiClash? :boolean;
     clashHandler? :(type :string, args :object, clashee :object) => string;
     renderSecurityLevel? :0 | 1 | 2 | 3;
@@ -17,10 +17,10 @@ type dynamicOptions = { //last update: 2022.6.9 15:28
 type tuID = string; //实在想不出很好的定义方式，变长字符串？？？
 interface templateObject{
     id :tuID;
-    content :HTMLElement;
+    content :Element;
 }
 interface instanceObject{
-    reference :HTMLElement;
+    reference :Element;
     slots :anyObject;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,13 +6,13 @@ import dataFlow from "./dataFlow";
 import * as utils from "../../utils/index";
 import * as localUtils from "./utils";
 interface registerArgs{
-    element :HTMLElement;
+    element :Element;
     tuID? :tuID;
     remove? :boolean;
 }
 interface renderArgs{
     tuID :tuID;
-    element :HTMLElement;
+    element :Element;
     slots? :anyObject;
     removeOuterElement? :boolean;
     insertAfter? :boolean;
@@ -21,7 +21,7 @@ interface renderArgs{
 }
 interface updateArgs{
     tuID :tuID;
-    element :HTMLElement;
+    element :Element;
 }
 export default class template{
     #options :dynamicOptions;
@@ -50,7 +50,7 @@ export default class template{
         }
         const tem :templateObject = {
             id: args.tuID,
-            content: args.element.cloneNode(true) as HTMLElement
+            content: args.element.cloneNode(true) as Element
         };
         this.#templates.push(tem);
         if(args.remove === true) args.element.remove();
@@ -62,7 +62,7 @@ export default class template{
             if(this.#templates[i].id === args.tuID){
                 const content = this.#templates[i].content.cloneNode(true);
                 //slots变量替换
-                if(content instanceof HTMLElement) this.#parseSlots(content, args.slots);
+                if(content instanceof Element) this.#parseSlots(content, args.slots);
                 var nodes :Node[] = [];
                 if(args.removeOuterElement === true) nodes = utils.element.getInnerNodes(content);
                 else nodes[0] = content;
@@ -71,18 +71,18 @@ export default class template{
         }
         utils.generic.E("tuID", "valid ID that exists", args.tuID);
     }
-    update(args :updateArgs) :HTMLElement | null{
+    update(args :updateArgs) :Element | null{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === args.tuID){
-            if(args.element instanceof HTMLElement){
+            if(args.element instanceof Element){
                 const oldContent = this.#templates[i].content;
                 this.#templates[i].content = args.element;
                 return oldContent;
             }
-            else utils.generic.E("element", "HTMLElement", args.element);
+            else utils.generic.E("element", "Element", args.element);
         }
         return null;
     }
-    delete(tuID :tuID) :HTMLElement | null{
+    delete(tuID :tuID) :Element | null{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID){
             let content = this.#templates[i].content;
             this.#templates.splice(i, 1);
@@ -90,7 +90,7 @@ export default class template{
         }
         return null;
     }
-    getContent(tuID :tuID) :HTMLElement | null{
+    getContent(tuID :tuID) :Element | null{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID) return this.#templates[i].content;
         return null;
     }
@@ -98,7 +98,7 @@ export default class template{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === tuID) return true;
         return false;
     }
-    existsElement(element :HTMLElement) :string | null{
+    existsElement(element :Element) :string | null{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].content.isEqualNode(element)) return this.#templates[i].id;
         return null;
     }
@@ -113,7 +113,7 @@ export default class template{
             ]
         }];*/
     }
-    #parseSlots = (target :HTMLElement, argSlots? :anyObject) :void=>{
+    #parseSlots = (target :Element, argSlots? :anyObject) :void=>{
         const slots = utils.element.e("slot", target) as HTMLSlotElement[]; //用非id的css选择器就一定返回Node[]
         //console.log(slots);
         for(let j in argSlots) if(argSlots[j] === undefined) delete argSlots[j];  //预先把魔法字扔掉，可以省复杂度
@@ -141,7 +141,7 @@ export default class template{
     #observerCB = (resultList :MutationRecord[], observer :MutationObserver) :void=>{
         for(let i = 0; i < resultList.length; i++) for(let j = 0; j < resultList[i].addedNodes.length; j++){
             const ele = resultList[i].addedNodes[j];
-            if(!(ele instanceof HTMLElement)) return; //不处理文本注释节点
+            if(!(ele instanceof Element)) return; //不处理文本注释节点
             //template增量注册
             if(ele instanceof HTMLTemplateElement/*t && ele.getAttribute("nodynamic") === null //放到convertTemplate里面做，不要混乱分工*/) this.#convertTemplate(ele);
             //释放tuid检测与渲染模板
@@ -151,7 +151,7 @@ export default class template{
                 var slots :HTMLSlotElement[] = [];
                 for(let i = 0; i < ele.childNodes.length; i++){
                     const child = ele.childNodes[i] as Node;
-                    if(child instanceof HTMLElement && child.tagName === "SLOT") slots.push(child as HTMLSlotElement);
+                    if(child instanceof Element && child.tagName === "SLOT") slots.push(child as HTMLSlotElement);
                 }
                 //console.log(ele.childNodes, ele.innerHTML, ele, slots);
                 var argSlots :anyObject = {};
