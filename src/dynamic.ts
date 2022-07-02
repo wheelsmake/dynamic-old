@@ -1,10 +1,11 @@
 ﻿/* dynamic
- * ©2022 LJM12914. https://github.com/openink/dynamic
- * Licensed under MIT License. https://github.com/openink/dynamic/blob/main/LICENSE
+ * ©2022 LJM12914. https://github.com/wheelsmake/dynamic
+ * Licensed under MIT License. https://github.com/wheelsmake/dynamic/blob/main/LICENSE
 */
 import template from "./template";
 import dataFlow from "./dataFlow";
-import utils from "./utils";
+import * as utils from "../../utils/index";
+import * as localUtils from "./utils";
 interface renderArgs{
     HTML :string | HTMLElement | HTMLCollection | Node | NodeList | Node[];
     element :HTMLElement;
@@ -38,19 +39,19 @@ class Dynamic{
     }
     render(args :renderArgs) :Node[]{
         //todo:添加渲染限制
-        return utils.render(args.HTML, args.element, args.insertAfter, args.append, args.disableDF);
+        return utils.element.render(args.HTML, args.element, args.insertAfter, args.append, args.disableDF);
     }
     repeat(args :repeatArgs) :any[]{
-        return utils.repeat(args.item, args.count);
+        return utils.generic.repeat(args.item, args.count);
     }
     e(s :string, scope? :HTMLElement | Document) :Node[] | Node{
-        return utils.e(s, scope);
+        return utils.element.e(s, scope);
     }
     toHTML(HTML :string) :Node[]{
-        return utils.toHTML(HTML);
+        return utils.element.toHTML(HTML);
     }
     hatch(args :hatchArgs) :Node[]{
-        return utils.hatch(args.element, args.remove);
+        return utils.element.hatch(args.element, args.remove);
     }
     compose(){
         //todo:
@@ -59,5 +60,5 @@ class Dynamic{
         return this.dataFlow.createDataNode(args);
     }
 }
-utils.constantize(Dynamic);
+utils.generic.constantize(Dynamic);
 (window as any).Dynamic = Dynamic;

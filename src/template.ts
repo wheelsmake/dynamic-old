@@ -1,9 +1,10 @@
 ﻿/* dynamic
- * ©2022 LJM12914. https://github.com/openink/dynamic
- * Licensed under MIT License. https://github.com/openink/dynamic/blob/main/LICENSE
+ * ©2022 LJM12914. https://github.com/wheelsmake/dynamic
+ * Licensed under MIT License. https://github.com/wheelsmake/dynamic/blob/main/LICENSE
 */
 import dataFlow from "./dataFlow";
-import utils from "./utils";
+import * as utils from "../../utils/index";
+import * as localUtils from "./utils";
 interface registerArgs{
     element :HTMLElement;
     tuID? :tuID;
@@ -38,14 +39,14 @@ export default class template{
     }
     //注册模板核心方法，不用判断nodynamic dynamic了！
     register(args :registerArgs) :string{
-        if(args.tuID !== undefined && !utils.checkTUID(args.tuID)) utils.E("tuID", "string with some limitations", `${args.tuID}, read the documentation for help`);
-        else if(args.tuID === undefined) args.tuID = utils.generateTUID();
+        if(args.tuID !== undefined && !localUtils.checkTUID(args.tuID)) utils.generic.E("tuID", "string with some limitations", `${args.tuID}, read the documentation for help`);
+        else if(args.tuID === undefined) args.tuID = localUtils.generateTUID();
         while(this.existsTUID(args.tuID)){ //碰撞处理，万一真的碰撞了怎么办……
             if(this.#options && this.#options.enableAntiClash === true){
                 if(this.#options.clashHandler !== undefined) args.tuID = this.#options.clashHandler("tuID", args, this.#getTemplateObject(args.tuID)!);
-                else utils.E("options.clashHandler", "Function", this.#options.clashHandler);
+                else utils.generic.E("options.clashHandler", "Function", this.#options.clashHandler);
             }
-            else utils.E("tuID", "non-repetitive string", args.tuID);
+            else utils.generic.E("tuID", "non-repetitive string", args.tuID);
         }
         const tem :templateObject = {
             id: args.tuID,
@@ -63,12 +64,12 @@ export default class template{
                 //slots变量替换
                 if(content instanceof HTMLElement) this.#parseSlots(content, args.slots);
                 var nodes :Node[] = [];
-                if(args.removeOuterElement === true) nodes = utils.getInnerNodes(content);
+                if(args.removeOuterElement === true) nodes = utils.element.getInnerNodes(content);
                 else nodes[0] = content;
-                return utils.render(nodes, args.element, args.insertAfter, args.append, args.disableDF);
+                return utils.element.render(nodes, args.element, args.insertAfter, args.append, args.disableDF);
             }
         }
-        utils.E("tuID", "valid ID that exists", args.tuID);
+        utils.generic.E("tuID", "valid ID that exists", args.tuID);
     }
     update(args :updateArgs) :HTMLElement | null{
         for(let i = 0; i < this.#templates.length; i++) if(this.#templates[i].id === args.tuID){
@@ -77,7 +78,7 @@ export default class template{
                 this.#templates[i].content = args.element;
                 return oldContent;
             }
-            else utils.E("element", "HTMLElement", args.element);
+            else utils.generic.E("element", "HTMLElement", args.element);
         }
         return null;
     }
@@ -113,7 +114,7 @@ export default class template{
         }];*/
     }
     #parseSlots = (target :HTMLElement, argSlots? :anyObject) :void=>{
-        const slots = utils.e("slot", target) as HTMLSlotElement[]; //用非id的css选择器就一定返回Node[]
+        const slots = utils.element.e("slot", target) as HTMLSlotElement[]; //用非id的css选择器就一定返回Node[]
         //console.log(slots);
         for(let j in argSlots) if(argSlots[j] === undefined) delete argSlots[j];  //预先把魔法字扔掉，可以省复杂度
         if(argSlots !== undefined && slots.length != 0) for(let i = 0; i < slots.length; i++){ //用一个attribute比遍整个args.slot
@@ -128,7 +129,7 @@ export default class template{
         }
         if(slots.length != 0) for(let i = 0; i < slots.length; i++){ //转换slots节点到文本节点
             const par = slots[i].parentElement!;
-            utils.hatch(slots[i], true);
+            utils.element.hatch(slots[i], true);
             par.normalize();
         }
     }
@@ -166,7 +167,7 @@ export default class template{
                     element: ele,
                     slots: argSlots
                 });
-                utils.hatch(ele, true);
+                utils.element.hatch(ele, true);
             }
         }
     }
@@ -175,9 +176,9 @@ export default class template{
         const goRender = (template :HTMLTemplateElement) :void=>{
             if(template.getAttribute("nodynamic") === null){
                 var tuid = template.getAttribute("tuid");
-                if(!tuid || !utils.checkTUID(tuid)) tuid = utils.generateTUID();
+                if(!tuid || !localUtils.checkTUID(tuid)) tuid = localUtils.generateTUID();
                 //干掉template的shadow dom
-                const el = document.createElement("div"), children = utils.getInnerNodes(template.content);
+                const el = document.createElement("div"), children = utils.element.getInnerNodes(template.content);
                 for(let i = 0; i < children.length; i++) el.appendChild(children[i]);
                 //提前remove掉dynamic的template
                 if(template.getAttribute("dynamic") !== null) template.remove();

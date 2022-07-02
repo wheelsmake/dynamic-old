@@ -1,8 +1,10 @@
 ﻿/* dynamic
- * ©2022 LJM12914. https://github.com/openink/dynamic
- * Licensed under MIT License. https://github.com/openink/dynamic/blob/main/LICENSE
+ * ©2022 LJM12914. https://github.com/wheelsmake/dynamic
+ * Licensed under MIT License. https://github.com/wheelsmake/dynamic/blob/main/LICENSE
 */
 type anyObject = Record<string, any>;
+type kvObject = Record<string, string | undefined | null>;
+type SSkvObject = Record<string, string>;
 type dynamicOptions = { //last update: 2022.6.9 15:28
     rootScope? :HTMLElement;
     enableAntiClash? :boolean;

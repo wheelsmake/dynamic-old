@@ -1,9 +1,10 @@
 ﻿/* dynamic
- * ©2022 LJM12914. https://github.com/openink/dynamic
- * Licensed under MIT License. https://github.com/openink/dynamic/blob/main/LICENSE
+ * ©2022 LJM12914. https://github.com/wheelsmake/dynamic
+ * Licensed under MIT License. https://github.com/wheelsmake/dynamic/blob/main/LICENSE
 */
 import template from "./template";
-import utils from "./utils";
+import * as utils from "../../utils/index";
+import * as localUtils from "./utils";
 export default class dataFlow{
     #options :dynamicOptions;
     #dfScopes :HTMLElement[] = [];
@@ -21,12 +22,12 @@ export default class dataFlow{
     }
     new(element :HTMLElement) :void{
         //排除已经是目前作用域或目前作用域子元素的新增
-        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(element, this.#dfScopes[i]) || element === this.#dfScopes[i]){
+        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.element.isDescendant(element, this.#dfScopes[i]) || element === this.#dfScopes[i]){
             console.warn(`${element} is already a descendant of an exist scope, thus dynamic won't add it.`);
             return;
         }
         //排除原数组中是新增作用域子元素的元素
-        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.isDescendant(this.#dfScopes[i], element)) utils.precisePop(this.#dfScopes[i], this.#dfScopes);
+        for(let i = 0; i < this.#dfScopes.length; i++) if(utils.element.isDescendant(this.#dfScopes[i], element)) utils.generic.precisePop(this.#dfScopes[i], this.#dfScopes);
         this.#dfScopes.push(element);
         this.#convertExportDataNode(element);
     }
