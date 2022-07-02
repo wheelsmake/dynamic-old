@@ -8,6 +8,7 @@ module.exports = {
     devtool: "source-map",
     output: {
         path: path.resolve(__dirname, "dist"),
+        //filename: "dynamic.[contenthash:8].js"
         filename: "dynamic.js"
     },
     resolve: {
