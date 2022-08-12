@@ -39,7 +39,7 @@ const dy = new Dynamic(options? :object);
 
 `tuID` 是 dynamic 内部识别模板的唯一方式。它是一个长度大于等于 3 个字符的字符串，只能包含小写字母、数字或连字符 `-`，且在不是开头和结尾的字符中有至少一个连字符。
 
-当 dynamic 自动生成 `tuID` 时，其长度总是为 29 字符，并且第 12 个字符总为连字符 `-`，因为 dynamic 的开发者是 LJM**129**14。总共可能生成 4.23e+37 个 `tuID`，基本不用担心碰撞，并有[碰撞检测](#enableAntiClash)功能（需在 `options` 参数中设置）。
+当 dynamic 自动生成 `tuID` 时，其长度总是为 29 字符，并且第 12 个字符总为连字符 `-`，因为 dynamic 的开发者是 LJM**129**14。总共可能生成 4.23e+37 个 `tuID`，基本不用担心碰撞。
 
 此规范的目的是能将每一个 `tuID` 都作为一个有效的自定义元素（[Web Component](https://developer.mozilla.org/zh-CN/docs/Web/Web_Components)）使用。
 
@@ -623,37 +623,16 @@ const dy = new Dynamic(options);
 
 下面是对 `options` 对象的有效属性的描述，注意所有属性都是**可选的**。无效的属性将被 dynamic 忽略。
 
-|                   有效属性                    |                           类型                            |             描述             |
-| :-------------------------------------------: | :-------------------------------------------------------: | :--------------------------: |
-|           [`rootScope`](#rootScope)           |                         `Element`                         | 创建实例时顺便指定一个作用域 |
-|     [`enableAntiClash`](#enableAntiClash)     |                         `boolean`                         |       是否开启碰撞检测       |
-|      [`clashHandler`](#enableAntiClash)       | `(type :string, args :object, clashee :object) => string` |         碰撞处理方法         |
-| [`renderSecurityLevel`](#renderSecurityLevel) |                      `0 | 1 | 2 | 3`                      |      渲染 HTML 安全级别      |
-|    [`bannedTagName`](#renderSecurityLevel)    |                        `string[]`                         |     禁止渲染的 HTML 标签     |
-|      [`tInstanceLimit`](#tInstanceLimit)      |                         `number`                          |    限制模板实例的保存数量    |
+|                   有效属性                    |      类型       |             描述             |
+| :-------------------------------------------: | :-------------: | :--------------------------: |
+|           [`rootScope`](#rootScope)           |    `Element`    | 创建实例时顺便指定一个作用域 |
+| [`renderSecurityLevel`](#renderSecurityLevel) | `0 | 1 | 2 | 3` |      渲染 HTML 安全级别      |
+|    [`bannedTagName`](#renderSecurityLevel)    |   `string[]`    |     禁止渲染的 HTML 标签     |
+|      [`tInstanceLimit`](#tInstanceLimit)      |    `number`     |    限制模板实例的保存数量    |
 
 ## rootScope
 
 用于在创建实例时顺便指定一个作用域。更多信息请参见[新建作用域](#新建作用域)。
-
-## enableAntiClash
-
-任意两个模板的 `tuID` 均不应该重复，并且由于极低的碰撞概率，它们一般也不会重复。但对于拥有许多模板的大型程序来说，这好像似乎大概貌似应该有可能，考虑到一些开发者愿意用性能换强迫症的开心，所以提供了碰撞检测功能。
-
-将 `enableAntiClash` 设为 `true` 即可打开。此时也必须设置 `clashHandler` 方法，dynamic 的调用参数如下：
-
-```typescript
-clashHandler(args :object, clashee :object) :string;
-```
-
-|   参数    |             描述             |
-| :-------: | :--------------------------: |
-|  `args`   | 调用注册方法时传入的参数对象 |
-| `clashee` |       原有的同 ID 实例       |
-
-该方法期望的返回值是有效的 `tuID`。dynamic 仍会对 `tuID` 的有效性做检查，若无效，则抛出异常。若再次碰撞，则再次调用该方法，直至成功。
-
-碰撞检测会消耗一些性能，在每一次创建新实例时进行 ID 检查。
 
 ## renderSecurityLevel
 

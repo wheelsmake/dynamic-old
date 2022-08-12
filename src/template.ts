@@ -41,13 +41,8 @@ export default class template{
     register(args :registerArgs) :string{
         if(args.tuID !== undefined && !localUtils.checkTUID(args.tuID)) utils.generic.E("tuID", "string with some limitations", `${args.tuID}, read the documentation for help`);
         else if(args.tuID === undefined) args.tuID = localUtils.generateTUID();
-        while(this.existsTUID(args.tuID)){ //碰撞处理，万一真的碰撞了怎么办……
-            if(this.#options && this.#options.enableAntiClash === true){
-                if(this.#options.clashHandler !== undefined) args.tuID = this.#options.clashHandler("tuID", args, this.#getTemplateObject(args.tuID)!);
-                else utils.generic.E("options.clashHandler", "Function", this.#options.clashHandler);
-            }
-            else utils.generic.E("tuID", "non-repetitive string", args.tuID);
-        }
+        //基本上绝对不可能碰撞
+        //while(this.existsTUID(args.tuID)) utils.generic.E("tuID", "non-repetitive string", args.tuID); //千亿一真的碰撞了怎么办……
         const tem :templateObject = {
             id: args.tuID,
             content: args.element.cloneNode(true) as Element
