@@ -41,8 +41,6 @@ export default class template{
     register(args :registerArgs) :string{
         if(args.tuID !== undefined && !localUtils.checkTUID(args.tuID)) utils.generic.E("tuID", "string with some limitations", `${args.tuID}, read the documentation for help`);
         else if(args.tuID === undefined) args.tuID = localUtils.generateTUID();
-        //基本上绝对不可能碰撞
-        //while(this.existsTUID(args.tuID)) utils.generic.E("tuID", "non-repetitive string", args.tuID); //千亿一真的碰撞了怎么办……
         const tem :templateObject = {
             id: args.tuID,
             content: args.element.cloneNode(true) as Element
@@ -52,7 +50,7 @@ export default class template{
         return args.tuID;
     }
     //超级核心方法todo:添加渲染限制
-    render(args :renderArgs) :Node[] | undefined/*hack:ts不认utils.E的never类型，只能加undefined了*/{
+    render(args :renderArgs) :Node[] | void{
         for(let i = 0; i < this.#templates.length; i++){
             if(this.#templates[i].id === args.tuID){
                 const content = this.#templates[i].content.cloneNode(true);
