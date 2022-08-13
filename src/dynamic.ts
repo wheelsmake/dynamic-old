@@ -5,16 +5,20 @@
 import * as utils from "../../utils/index";
 import * as localUtils from "./utils/index";
 
-class App{
+class Scope{
     #rootNode :Element;
     constructor(rootNode :Elementy){
+        this.#rootNode = utils.arguments.reduceToElement(rootNode)!;
 
     }
 }
 
 
 const Dynamic = {
-
+    createScope(rootNode :Elementy) :Scope{
+        return new Scope(rootNode);
+    },
+    
 };
 //对象导出
 utils.generic.constantize(Dynamic);

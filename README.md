@@ -1,4 +1,7 @@
+中文 | [English](dynamic/blob/main/README.en.md)
+
 # dynamic
+
 一个简单的、以数据为中心的前端框架，用于创建现代化的网页应用。
 
 # 特性
