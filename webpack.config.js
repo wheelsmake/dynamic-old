@@ -4,7 +4,7 @@ module.exports = {
     optimization: {
         minimize: false,
     },
-    entry: "./src/dynamic.ts",
+    entry: "./src/dynamic.export.ts",
     devtool: "source-map",
     output: {
         path: path.resolve(__dirname, "dist"),
