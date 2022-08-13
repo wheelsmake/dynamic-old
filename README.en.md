@@ -1,4 +1,4 @@
-[中文](dynamic) | English
+[中文](../../) | English
 
 - English document is being translated by LJM12914 **it**self. Wait a minute for me.
 
