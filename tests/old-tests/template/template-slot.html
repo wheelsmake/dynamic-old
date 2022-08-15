@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0,shrink-to-fit=no" />
+        <title>dynamic test</title>
+    </head>
+    <body>
+        <button onclick="aaa()">渲染 manyslots</button><button onclick="bbb()">释放&lt;manyslots&gt;</button>
+        基本slots替换通过。相同name通过。默认内容通过。html通过。释放通过。
+        <details open>
+            <summary>渲染结果</summary>
+            <div id="test"></div>
+        </details>
+        <template tuid="manyslots">
+            <div>
+                <slot name="1">slot 1's default content.</slot>
+                <slot name="2">slot 2's default content.</slot>
+                <slot ></slot>
+            </div>
+            <div>
+                <slot name="1">我应该得到和slot1一样的东西。</slot>
+                <div>测试复杂嵌套dom
+                    <p>aaa<span>fewfw<del>tge4 slot:<slot name="3"></slot>-end slot tgs</del>t4wegs</span>bbb</p>
+                </div>
+                <div><slot name="4" html></slot></div>
+            </div>
+        </template>
+    </body>
+    <script src="../../dist/dynamic.js"></script>
+    <script src="template-slot.js"></script>
+</html>

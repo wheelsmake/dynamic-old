@@ -1,0 +1,1 @@
+{"version":3,"file":"dynamic.d.ts","sourceRoot":"","sources":["../../../../src/dynamic.ts"],"names":[],"mappings":"AAcA,cAAM,OAAO;;gBAMG,QAAQ,EAAE,QAAQ;IAI9B,IAAI,QAAQ,YAA0B;IACtC,yBAAyB;;;;;;;IASzB,QAAQ,CAAC,IAAI,EAAE,aAAa,GAAG,MAAM,GAAG,aAAa;IAyBrD,OAAO,CAAC,IAAI,EAAE,aAAa,GAAG,MAAM,GAAG,aAAa;IAuBpD,QAAQ,CAAC,IAAI,EAAE,aAAa,GAAG,MAAM,GAAG,aAAa;CA+CxD;AAKD,eAAe,OAAO,CAAC"}

@@ -2,7 +2,7 @@
 
 # dynamic
 
-一个简单的、以数据为中心的前端框架，用于创建现代化的网页应用。
+又叫 `dynamicJS`、`dnJS`，一个简单的、以数据为中心的前端框架，用于创建现代化的网页应用。
 
 # 特性
 
@@ -26,13 +26,174 @@ vDOM 不是 dynamic 的必选项。在很多时候，使用 vDOM 非常没有意
 
 将标记（LJM12914 更喜欢叫它「模板」）和逻辑分离到不同文件并不是人为的分离方式，而是天然的分离方法，这样做不需要任何视觉上的辅助，也创造了无限细粒度数据重用的可能性。
 
-在忘记指令该怎么写 `>= 3` 后，LJM12914 意识到了 Vue 的 HTML 内嵌指令的不便之处，遂决定将它们在 dynamic 中全部统一为两个语法（一个还是不常用的）。现在可以开始记了：`::export_dataNode_name::` 和 `_:transitive_dataNode_name:_`。
+在忘记指令该怎么写 `>= 3` 后，LJM12914 意识到了 Vue 的 HTML 内嵌指令的不便之处，遂决定将它们在 dynamic 中统一为三个语法。现在可以开始记了：`__source_dataNode_name__`、`--transitive_dataNode_name--` 和 `::export_dataNode_name::`。
 
 与 dynamic 的全部交互均可以通过命令式 JavaScript 脚本完成。仅有部分功能拥有声明式的写法，并且非常简单。
 
 ## 不依赖开发环境
 
-依照 LJM12914 的经验，开发环境是让所有开发者都抓狂的一个东西。dynamic 从开始被设计的第一天起就致力于「消灭」开发环境，它被设计得尽量不依赖任何东西、不要求任何特殊的代码提示，甚至可以直接在记事本中编写程序。
+依照 LJM12914 的经验，开发环境是让所有开发者都抓狂的一个东西。dynamic 从开始被设计的第一天起就致力于「消灭」开发环境，它被设计得尽量不依赖任何东西。
+
+# 开始使用
+
+## 从页面引入脚本
+
+建议将 dynamic 置于所有脚本之前加载。
+
+```html
+<script src="path/to/dynamic.js"></script><!--开发-->
+<script src="path/to/dynamic.min.js"></script><!--生产-->
+```
+
+## 使用打包工具开发
+
+克隆仓库或下载仓库，然后在你的代码中导入 `Dynamic`。
+
+```typescript
+import Dynamic from "path/to/dynamic.ts";
+```
+
+注意不要导入 `dynamic.export.ts` 而要导入 `dynamic.ts`。
+
+# 数据节点与数据流
+
+数据节点可以被理解为一个物流节点。它自己可以存有数据，并且知道自己的上下游节点，在接收数据和送出数据时能对数据进行一定的处理。
+
+数据节点按上下游的位置分为三种：源数据节点（下简 `源节点`）、传递型数据节点（下简 `传递节点`）和导出型数据节点（下简 `导出节点`）。节点之间通过互相调用 `get()` 和 `set()` 进行数据流动。对于任一数据节点，`get` 和 `set` 谓词的宾语是自身。
+
+- 源节点是用来从数据源获取数据的，获取数据的过程只由它自己按一定频率进行，没有其他节点可以干扰。
+
+- 传递节点负责处理数据，并将其发送至下游节点。
+- 导出节点是用来将数据输出到 dynamic 之外的。大部分情况下是输出到 HTML 文档中。
+
+ 数据节点本质上是一个变量，一个带有双向响应式的变量。
+
+
+
+
+
+## 写法对比
+
+对比 dynamic 的声明式 HTML 写法和 Vue 的 HTML 模板写法。
+
+这是一个典型的 Vue 应用的 HTML 模板：
+
+```html
+<div id="app">
+    <div>
+        <ul v-for="item in list"></ul>
+        <input v-model="inputs" type="text" />
+        <button @click="dosth">do something</button>
+    </div>
+    <span>today is: {{date}}</span>
+    <button @click="date++">tomorrow</button>
+</div>
+```
+
+相信你知道在 JavaScript 中会写什么。上面的模板用 dynamic 实现则是：
+
+```html
+<div id="app">
+    <div>
+        <ul>::lis::</ul>
+        <input value="--trans_n--" type="text" />
+        <button onclick="dosth()">do something</button>
+    </div>
+    <span>::today_s::</span>
+    <button onclick="::today_s::increase">tomorrow</button>
+</div>
+```
+
+相应的 JavaScript 脚本：
+
+```javascript
+var dy = new Dynamic("#app");
+var myArray = ["a","b","c","d"];
+window.onload = ()=>{
+    dy.exportDN("today_s").methods = {
+        increase(){
+            this.value++;
+        }
+    }
+}
+```
+
+你可能对各种东西有所疑惑。
+
+1. 这和写直接操作 DOM 的代码有什么区别？
+
+   - 最大的区别是：数据可以在 HTML 中被无限重用。如果需要一个只要设置一个源节点，并将其
+
+2. 为什么要在 `window.onload` 后执行这些设置？
+
+   - HTML 中的声明式数据节点要在 dynamic 识别 HTML 文档后才会被创建。
+
+3. 看不懂 dynamic 在做什么
+
+   - dynamic 做了以下事情（可查看 `dynamic.ts > class Dynamic > #detectDN()`）
+
+   1. 识别 HTML 文档中的声明。
+   2. 筛选出所有的单纯节点声明，如果目前还没有这个节点，那么创建这个节点。
+   3. 然后将这些节点声明转换为对节点的 `export` 方法调用。
+
+4. 按钮的 `onclick` 属性写了什么
+
+   - 这是一个指令节点声明，不是单纯节点声明，作用是调用目标（必须是已存在的）节点 `methods` 中的指定方法。例如上文的 `::today_s::increase` 会被转换为 `today_s.methods.increase()`。又或者传入参数，例如 `::today_s::another("arg")`。
+
+5. 如果直接在 `onclick` 属性上这样写，IDE 会报错
+
+   - dynamic 拒绝 DSL，所以推荐这样写。其实 dynamic 也可以识别所有属性前面加上 `:` 的属性，如 `:id="::ex::"` 会将 `ex` 导出节点应用到 `id` 属性上。
+   - 需要注意的是加 `:` 属性的优先级**比没有加 `:` 属性的优先级高**。这是刻意的设计，可以用于很多先告诉浏览器属性，dynamic 再施工的场景。例如 `<div id="s1" :id="::ex::"></div>`，在带锚点 URL 访问（`http....#s1`）中可以生效。
+
+6. 
+
+7. 
+
+8. dynamic 中不存在应用内变量，只存在作用域内数据节点，
+
+
+
+
+
+
+
+
+
+# 补充说明
+
+## 学习 dynamic
+
+可以前往 [`tests/`](tests) 和 [`sample_projects/`](sample_projects) 目录浏览其中的示例项目。
+
+## 开发环境搭建
+
+```shell
+npm i -D webpack webpack-cli typescript ts-loader terser-webpack-plugin
+```
+
+其他配置详见 [`package.json`](package.json)、[`webpack.config.js`](webpack.config.js) 和 [`webpack.config-min.js`](webpack.config-min.js)。
+
+## 版权声明
+
+本软件以 MIT License 协议开源。
+
+©2020-2022 LJM12914
+
+## 互动
+
+- 欢迎提出issue，但请保持冷静的态度和对事不对人的基本道德准则。
+- 请不要在未与我沟通的情况下发起PR。
+- 随便 fork。
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -699,7 +860,7 @@ dynamic 在渲染每一个模板后都会记录有关数据，但是这些数据
 
 # 补充说明
 
-### [`tests/`](tests) 和 [`sample_projects/`](sample_projects) 目录中的示例项目能解决很多疑惑！
+### 
 
 ## 开发背景与设计意图
 
@@ -761,15 +922,3 @@ dynamic 的设计初衷之一就是让开发者可以在无任何依赖的情况
 #### 为什么……要这么写？
 
 只要在中等规模的页面上没有明显的性能差距，那么任何一种写法都是正确的。但是如果有明显性能差距，请提 issue。
-
-## 版权声明
-
-本软件以 MIT License 协议开源。
-
-©2020-2022 LJM12914
-
-## 互动
-
-- 欢迎提出issue，但请保持冷静的态度和对事不对人的基本道德准则。
-- 请不要在未与我沟通的情况下发起PR，否则PR大概率被拒绝。
-- 随便 fork。
