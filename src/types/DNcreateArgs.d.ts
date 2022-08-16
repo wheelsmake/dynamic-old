@@ -2,6 +2,7 @@
  * ©2022 LJM12914. https://github.com/wheelsmake/dynamic
  * Licensed under MIT License. https://github.com/wheelsmake/dynamic/blob/main/LICENSE
 */
+//important:更新这里也要更新createDN.ts checkArgs()！
 interface DNcreateArgs{
     name :string;
     methods? :Record<string, Function>;
@@ -18,10 +19,9 @@ interface tDNcreateArgs extends DNcreateArgs{
      * ok?
     */
     get?() :any;
-    set?(data :any) :any;
-    isCached? :boolean;
+    update?(data :any) :any;
     frequency? :number;
 }
 interface eDNcreateArgs extends DNcreateArgs{
-    export() :any;
+    export(data :any) :any;
 }

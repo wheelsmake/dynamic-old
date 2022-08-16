@@ -14,7 +14,7 @@ interface sourceDN extends dataNodeBase{
 }
 interface transitiveDN extends dataNodeBase{
     get() :any;
-    set(data :any) :any;
+    update(data :any) :any;
     prevs :prevDN[];
     nexts :nextDN[];
 }
@@ -23,7 +23,7 @@ interface ctransitiveDN extends transitiveDN{
     frequency :number;
 }
 interface exportDN extends dataNodeBase{
-    export() :any;
+    export(data :any) :any;
     prevs :prevDN[];
 }
 type transDN = transitiveDN | ctransitiveDN;

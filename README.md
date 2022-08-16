@@ -110,11 +110,11 @@ import Dynamic from "path/to/dynamic.ts";
 var dy = new Dynamic("#app");
 var myArray = ["a","b","c","d"];
 window.onload = ()=>{
-    dy.exportDN("today_s").methods = {
+    dy.exportDN("today_s").methods({
         increase(){
             this.value++;
         }
-    }
+    });
 }
 ```
 

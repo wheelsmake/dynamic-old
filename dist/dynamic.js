@@ -28,8 +28,14 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
 var _Dynamic_instances, _Dynamic_rootNode, _Dynamic_sourceDNs, _Dynamic_transDNs, _Dynamic_exportDNs, _Dynamic_DNs, _Dynamic_detectDN;
 
 
-console.info("dynamic ©LJM12914. https://github.com/wheelsmake/dynamic \r\nYou are using an unminified version of dynamic, which is not suitable for production use.");
+console.info(`dynamic(dnJS) ©LJM12914. https://github.com/wheelsmake/dynamic
+You are using the unminified build of dynamic. Make sure to use the minified build for production.`);
 const DEV = "DEV" in window && window.DEV === true;
+const s = [
+    "cannot find this datanode",
+    "DNcreateArgs | string",
+    "BLOCKED IN NON-DEV MODE"
+];
 class Dynamic {
     constructor(rootNode) {
         _Dynamic_instances.add(this);
@@ -40,6 +46,7 @@ class Dynamic {
         _Dynamic_DNs.set(this, []);
         __classPrivateFieldSet(this, _Dynamic_rootNode, _utils_index__WEBPACK_IMPORTED_MODULE_0__.arguments.reduceToElement(rootNode), "f");
         __classPrivateFieldGet(this, _Dynamic_instances, "m", _Dynamic_detectDN).call(this, __classPrivateFieldGet(this, _Dynamic_rootNode, "f"));
+        console.info("creating new dynamic instance with rootNode", rootNode);
     }
     get rootNode() { return __classPrivateFieldGet(this, _Dynamic_rootNode, "f"); }
     __DEV__getPrivateFields__() {
@@ -51,6 +58,8 @@ class Dynamic {
                 exportDNs: __classPrivateFieldGet(this, _Dynamic_exportDNs, "f"),
                 DNs: __classPrivateFieldGet(this, _Dynamic_DNs, "f")
             };
+        else
+            return s[2];
     }
     sourceDN(args) {
         const DNs = __classPrivateFieldGet(this, _Dynamic_DNs, "f"), sourceDNs = __classPrivateFieldGet(this, _Dynamic_sourceDNs, "f"), transDNs = __classPrivateFieldGet(this, _Dynamic_transDNs, "f"), exportDNs = __classPrivateFieldGet(this, _Dynamic_exportDNs, "f");
@@ -61,23 +70,30 @@ class Dynamic {
             DNs.push(result);
             thisDN = result;
         }
-        else
+        else {
             for (let i = 0; i < sourceDNs.length; i++)
                 if (sourceDNs[i].name === args)
                     thisDN = sourceDNs[i];
+            if (thisDN === undefined)
+                _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("args", `s${s[1]}`, args, s[0]);
+        }
         return {
             connectTo(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.connectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
             disconnectTo(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.disconnectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
             existsNext(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.existsNext([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
             get frequency() { return thisDN.frequency; },
-            set frequency(frequency) {
-                if (typeof frequency != "number")
-                    _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("frequency", "number", frequency);
+            set frequency(freq) {
+                if (typeof freq != "number")
+                    _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("frequency", "number", freq);
                 else
-                    thisDN.frequency = frequency;
+                    thisDN.frequency = freq;
             },
-            get value() { if (DEV)
-                return thisDN.value; }
+            get value() {
+                if (DEV)
+                    return thisDN.value;
+                else
+                    return s[2];
+            }
         };
     }
     transDN(args) {
@@ -89,11 +105,15 @@ class Dynamic {
             DNs.push(result);
             thisDN = result;
         }
-        else
+        else {
             for (let i = 0; i < transDNs.length; i++)
                 if (transDNs[i].name === args)
                     thisDN = transDNs[i];
-        return {
+            if (thisDN === undefined)
+                _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("args", `t${s[1]}`, args, s[0]);
+        }
+        thisDN = thisDN;
+        const result2 = {
             connectTo(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.connectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
             disconnectTo(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.disconnectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
             connectFrom(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.connectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
@@ -101,6 +121,27 @@ class Dynamic {
             existsPrev(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.existsPrev([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
             existsNext(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.existsNext([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); }
         };
+        if ("frequency" in thisDN) {
+            Object.defineProperty(thisDN, "frequency", {
+                configurable: false,
+                enumerable: true,
+                get() { return thisDN.frequency; },
+                set(freq) {
+                    if (typeof freq != "number")
+                        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("frequency", "number", freq);
+                    else
+                        thisDN.frequency = freq;
+                }
+            });
+            Object.defineProperty(thisDN, "value", {
+                configurable: false,
+                enumerable: true,
+                get() { return thisDN.value; }
+            });
+            return result2;
+        }
+        else
+            return result2;
     }
     exportDN(args) {
         const DNs = __classPrivateFieldGet(this, _Dynamic_DNs, "f"), sourceDNs = __classPrivateFieldGet(this, _Dynamic_sourceDNs, "f"), transDNs = __classPrivateFieldGet(this, _Dynamic_transDNs, "f"), exportDNs = __classPrivateFieldGet(this, _Dynamic_exportDNs, "f");
@@ -111,10 +152,13 @@ class Dynamic {
             DNs.push(result);
             thisDN = result;
         }
-        else
+        else {
             for (let i = 0; i < exportDNs.length; i++)
                 if (exportDNs[i].name === args)
                     thisDN = exportDNs[i];
+            if (thisDN === undefined)
+                _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("args", `e${s[1]}`, args, s[0]);
+        }
         return {
             connectFrom(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.connectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
             disconnectFrom(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.disconnectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
@@ -128,11 +172,11 @@ _Dynamic_rootNode = new WeakMap(), _Dynamic_sourceDNs = new WeakMap(), _Dynamic_
         if (eDNm)
             this.exportDN({
                 name: eDNm[0].substring(2, eDNm[0].length - 2),
-                export() {
+                methods: {},
+                export(data) {
+                    node.textContent = Object.prototype.toString.call(this.value);
                 }
             });
-        if (sDNm) {
-        }
     }
     const attrs = node.attributes;
     for (let i = 0; i < attrs.length; i++) {
@@ -162,12 +206,46 @@ __webpack_require__.r(__webpack_exports__);
 
 function createSDN(args) {
     checkArgs("s", args);
+    return {
+        name: args.name,
+        methods: "methods" in args ? args.methods : {},
+        fetch: args.fetch,
+        value: undefined,
+        frequency: args.frequency,
+        nexts: []
+    };
 }
 function createTDN(args) {
     checkArgs("t", args);
+    const result = {};
+    result.name = args.name;
+    result.methods = "methods" in args ? args.methods : {};
+    if ("frequency" in args)
+        result.frequency = args.frequency;
+    if ("get" in args)
+        result.get = args.get;
+    else
+        result.get = function () {
+            return this.value;
+        };
+    if ("set" in args)
+        result.set = args.set;
+    else
+        result.set = function (data) {
+            this.value = data;
+        };
+    result.prevs = [];
+    result.nexts = [];
+    return result;
 }
 function createEDN(args) {
     checkArgs("e", args);
+    return {
+        name: args.name,
+        methods: "methods" in args ? args.methods : {},
+        export: args.export,
+        prevs: []
+    };
 }
 function checkArgs(type, args) {
     const a = "args", b = "DNCreateArgs", c = " is invalid";
@@ -180,10 +258,11 @@ function checkArgs(type, args) {
             case "s":
                 if (!("fetch" in args) || typeof args.fetch != "function")
                     _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E(a, `s${b}`, args, `${a}.fetch${c}`);
-                else
-                    break;
+                else if (!("frequency" in args) || typeof args.frequency != "number" || args.frequency < 0)
+                    _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E(a, `s${b}`, args, `${a}.frequency${c}`);
+                break;
             case "t":
-                if ("isCached" in args && args.isCached === true && (!("frequency" in args) || typeof args.frequency != "number"))
+                if ("frequency" in args && (typeof args.frequency != "number" || args.frequency < 0))
                     _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E(a, `t${b}`, args, `${a}.frequency${c}`);
                 break;
             case "e":

@@ -3,27 +3,58 @@
  * Licensed under MIT License. https://github.com/wheelsmake/dynamic/blob/main/LICENSE
 */
 import * as utils from "../../../utils/index";
-/**有问题已经报错了，一定会返回节点
- * 
- * 看清我是**S**！！*/
-export function createSDN(args :sDNcreateArgs) :sourceDN | void{
+import * as localUtils from "./index";
+/**看清我是**S**！！*/
+export function createSDN(args :sDNcreateArgs) :sourceDN{
     checkArgs("s", args);
+    const result = {
+        name: args.name,
+        methods: "methods" in args ? args.methods! : {},
+        fetch: args.fetch,
+        value: undefined,
+        frequency: args.frequency,
+        nexts: []
+    };
+    utils.generic.constantize(result);
+    return result;
 }
-/**有问题已经报错了，一定会返回节点
- * 
- * 看清我是**T**！！*/
-export function createTDN(args :tDNcreateArgs) :transDN | void{
+/**看清我是**T**！！*/
+export function createTDN(args :tDNcreateArgs) :transDN{
     checkArgs("t", args);
+    const result :anyObject = {};
+    result.name = args.name;
+    result.methods = "methods" in args ? args.methods! : {};
+    //决定是否为缓存传递节点
+    if("frequency" in args) result.frequency = args.frequency;
+    //else 这里什么都不做
+    if("get" in args) result.get = args.get;
+    else result.get = function() :any{
+        return this.value; //这里的this是精心设计好的，不会是数据节点本身
+    };
+    if("set" in args) result.set = args.set;//todo:
+    else result.set = function(data :any) :any{
+        this.value = data; //同L29
+    }
+    result.prevs = [];
+    result.nexts = [];
+    utils.generic.constantize(result);
+    return (result as transDN);
 }
-/**有问题已经报错了，一定会返回节点
- * 
- * 看清我是**E**！！*/
-export function createEDN(args :eDNcreateArgs) :exportDN | void{
+/**看清我是**E**！！*/
+export function createEDN(args :eDNcreateArgs) :exportDN{
     checkArgs("e", args);
+    const result = {
+        name: args.name,
+        methods: "methods" in args ? args.methods! : {},
+        export: args.export,
+        prevs: []
+    };
+    utils.generic.constantize(result);
+    return result;
 }
 
-
-function checkArgs(type :"s" | "t" | "e", args :any) :void{
+function checkArgs(type :"s" | "t" | "e", args :any/*只能写any，否则第一个if后全是never因为ts认为第一个if一定会走，
+                有时候觉得ts反而增加了逻辑的难度，这是变量的验证期啊，你ts怎么知道别人传进来的一定是对的？？？？？*/) :void{
     //重用字符串
     const a = "args", b = "DNCreateArgs", c = " is invalid";
     //没name
@@ -37,11 +68,13 @@ function checkArgs(type :"s" | "t" | "e", args :any) :void{
         case "s":
             //fetch不对劲
             if(!("fetch" in args) || typeof args.fetch != "function") utils.generic.E(a, `s${b}`, args, `${a}.fetch${c}`);
-            else 
+            //frequency不对劲
+            else if(!("frequency" in args) || typeof args.frequency != "number" || args.frequency < 0) utils.generic.E(a, `s${b}`, args, `${a}.frequency${c}`);
             break;
         case "t":
-            //isCached是true然后没frequency或frequency不是数字
-            if("isCached" in args && args.isCached === true && (!("frequency" in args) || typeof args.frequency != "number")) utils.generic.E(a, `t${b}`, args, `${a}.frequency${c}`);
+            //frequency不是数字或小于0（等于0则为常量）
+            //没frequency则创建普通传递节点，否则创建缓存传递节点
+            if("frequency" in args && (typeof args.frequency != "number" || args.frequency < 0)) utils.generic.E(a, `t${b}`, args, `${a}.frequency${c}`);
             break;
         case "e":
             //export不对劲
