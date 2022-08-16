@@ -4,30 +4,25 @@
 */
 interface dataNodeBase{
     name :string;
-    methods :Record<string, Function>;
+    //现在由扩展分别定义
+    //methods :Record<string, Function>;
 }
-interface sourceDN extends dataNodeBase{
-    fetch() :any;
-    value :any;
-    frequency :number;
-    nexts :nextDN[];
-}
-interface transitiveDN extends dataNodeBase{
-    get() :any;
-    update(data :any) :any;
+interface transDN extends dataNodeBase{
+    methods :{
+        get() :any;
+        update(data :any) :any;
+        [x :string] :Function;
+    }
     prevs :prevDN[];
     nexts :nextDN[];
-}
-interface ctransitiveDN extends transitiveDN{
     value :any;
     frequency :number;
 }
 interface exportDN extends dataNodeBase{
-    export(data :any) :any;
+    methods :{
+        export() :void;
+    }
     prevs :prevDN[];
 }
-type transDN = transitiveDN | ctransitiveDN;
 
-type prevDN = transDN | sourceDN;
-type nextDN = transDN | exportDN;
-type dataNode = sourceDN | transDN | exportDN;
+type dataNode = transDN | exportDN;

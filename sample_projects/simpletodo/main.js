@@ -1,9 +1,7 @@
 ﻿var dy = new Dynamic("#root");
-dy.sourceDN("todoStore").setMethods({
-    add(){
-
-    }
-});
+dy.sourceDN("todoStore").methods = {
+    
+}
 dy.sourceDN("")
 window.onload = ()=>{
     dy.exportDN("export") = {
@@ -13,5 +11,5 @@ window.onload = ()=>{
     }
 }
 add({
-    
+
 })

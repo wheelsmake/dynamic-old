@@ -22,7 +22,6 @@ const s = [
 //主类
 class Dynamic{
     #rootNode :Element;
-    #sourceDNs :sourceDN[] = [];
     #transDNs :transDN[] = [];
     #exportDNs :exportDN[] = [];
     #DNs :dataNode[] = [];
@@ -36,14 +35,13 @@ class Dynamic{
     __DEV__getPrivateFields__(){
         if(DEV) return{
             rootNode: this.#rootNode,
-            sourceDNs: this.#sourceDNs,
             transDNs: this.#transDNs,
             exportDNs: this.#exportDNs,
             DNs: this.#DNs
         }
         else return s[2];
     }
-    sourceDN(args :sDNcreateArgs | string) :sDNOperations{
+    transDN(args :tDNcreateArgs | string) :void{
         const DNs = this.#DNs, sourceDNs = this.#sourceDNs, transDNs = this.#transDNs, exportDNs = this.#exportDNs,
               sourceDN = this.sourceDN, transDN = this.transDN, exportDN = this.exportDN;
         var thisDN :sourceDN;
@@ -61,9 +59,6 @@ class Dynamic{
             //这就让我很不爽了，ts怎么会逼我写出带断言的变量等于undefined这种东西？？？
             if(thisDN! === undefined) utils.generic.E("args", `s${s[1]}`, args, s[0]);
         }
-    }
-    transDN(args :tDNcreateArgs | string) :void{
-
     }
     exportDN(args :eDNcreateArgs | string) :void{
 
