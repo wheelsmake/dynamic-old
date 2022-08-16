@@ -12,4 +12,4 @@ dy.transDN({
     update(data){
         return data.aa + data.ad;
     }
-}).connectTo("ab");
+}).connectTo("ab"); //链式调用

@@ -8,15 +8,11 @@
     <body>
         <div id="root">
             <div id="header">
-                <button id="add" onclick="add()">添加待办事项</button>&emsp;<input id="content" type="text" />&emsp;<span></span>
+                <button id="add" :onclick="--todoStore--update">添加待办事项</button>&emsp;
+                <input id="content" :value="__content__" type="text" placeholder="输入待办事项..." autofocus />
             </div>
-            <div id="field">
-
-            </div>
+            <div id="field">::export::</div>
         </div>
-        <template dynamic tuid="todo">
-            <label><input type="checkbox" onclick="switchState()" />finish</label>&emsp;<slot name="todo-content">Empty Content</slot>
-        </template>
     </body>
     <script src="../../dist/dynamic.min.js"></script>
     <script src="main.js"></script>

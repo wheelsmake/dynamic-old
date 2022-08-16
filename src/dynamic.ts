@@ -4,7 +4,7 @@
 */
 import * as utils from "../../utils/index";
 import * as localUtils from "./utils/index";
-
+import DN from "./dataNode/index";
 
 //开发模式
 console.info(
@@ -28,7 +28,7 @@ class Dynamic{
     #DNs :dataNode[] = [];
     constructor(rootNode :Elementy){
         this.#rootNode = utils.arguments.reduceToElement(rootNode)!;
-        this.#detectDN(this.#rootNode);
+        this.#detectDNfromHTML(this.#rootNode);
         //开发模式记录
         console.info("creating new dynamic instance with rootNode", rootNode);
     }
@@ -47,152 +47,38 @@ class Dynamic{
         const DNs = this.#DNs, sourceDNs = this.#sourceDNs, transDNs = this.#transDNs, exportDNs = this.#exportDNs,
               sourceDN = this.sourceDN, transDN = this.transDN, exportDN = this.exportDN;
         var thisDN :sourceDN;
-        //创建节点
         if(typeof args == "object"){
             //create会审查参数
-            const result = localUtils.createDN.createSDN(args)!;
+            //const result = localUtils.createDN.createSDN(args)!;
             sourceDNs.push(result);
             DNs.push(result);
             thisDN = result;
         }
         //查找节点
         else{
+            //note:线性遍历数组的耗时可以忽略不计，遍历一个拥有200000个三个number类型对象的数组耗时约3ms
             for(let i = 0; i < sourceDNs.length; i++) if(sourceDNs[i].name === args) thisDN = sourceDNs[i];
             //这就让我很不爽了，ts怎么会逼我写出带断言的变量等于undefined这种东西？？？
             if(thisDN! === undefined) utils.generic.E("args", `s${s[1]}`, args, s[0]);
         }
-        return{
-            connectTo(target :string | nextDN) :void{return localUtils.dno.connectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target);},
-            disconnectTo(target :string | nextDN) :void{return localUtils.dno.disconnectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target);},
-            existsNext(target :string | nextDN) :boolean{return localUtils.dno.existsNext([DNs, sourceDNs, transDNs, exportDNs], thisDN, target);},
-            fetchNow(){},
-            get frequency(){return thisDN.frequency;},
-            set frequency(freq :number){
-                if(typeof freq != "number") utils.generic.E("frequency", "number", freq);
-                else thisDN.frequency = freq;
-            },
-            get value(){
-                //todo:不要限得那么死，如果是基本数据类型那么就放出来，引用数据类型就看开发模式与否
-                //基本数据类型：undefined、
-                if(DEV) return thisDN.value;
-                else return s[2];
-            }
-        }
     }
-    transDN(args :tDNcreateArgs | string) :tDNOperations | ctDNOperations{
-        const DNs = this.#DNs, sourceDNs = this.#sourceDNs, transDNs = this.#transDNs, exportDNs = this.#exportDNs,
-              sourceDN = this.sourceDN, transDN = this.transDN, exportDN = this.exportDN;
-        var thisDN :transDN;
-        //创建节点
-        if(typeof args == "object"){
-            //create会审查参数
-            const result = localUtils.createDN.createTDN(args)!;
-            transDNs.push(result);
-            DNs.push(result);
-            thisDN = result;
-        }
-        //查找节点
-        else{
-            for(let i = 0; i < transDNs.length; i++) if(transDNs[i].name === args) thisDN = transDNs[i];
-            if(thisDN! === undefined) utils.generic.E("args", `t${s[1]}`, args, s[0]);
-        }
-        thisDN = thisDN!;
-        const result2 :tDNOperations = {
-            connectTo(target :string | nextDN) :anyDNOperations{
-                //hack:这里玩了个副作用
-                const type = localUtils.misc.checkType(localUtils.dno.connectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target)!);
-                if(type == "t") return transDN(target);
-                else if(type == "e") return exportDN(target);
-                else utils.generic.EE(`${type}???`); //能走到这里就是鬼片
-            },
-            disconnectTo(target :string | nextDN) :anyDNOperations{
-                localUtils.dno.disconnectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target);
-                return thisDN;
-            },
-            connectFrom(target :string | prevDN) :anyDNOperations{
-                localUtils.dno.connectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target);
-                return thisDN;
-            },
-            disconnectFrom(target :string | prevDN) :anyDNOperations{
-                localUtils.dno.disconnectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target);
-                return thisDN;
-            },
-            existsPrev(target :string | prevDN) :boolean{return localUtils.dno.existsPrev([DNs, sourceDNs, transDNs, exportDNs], thisDN, target)},
-            existsNext(target :string | nextDN) :boolean{return localUtils.dno.existsNext([DNs, sourceDNs, transDNs, exportDNs], thisDN, target)}
-        };
-        if("frequency" in thisDN){
-            //判断是否为缓存传递节点（ctransitive），如果是，提供缓存访问方法
-            //note:如果在已存在的对象上添加getter和setter，需要使用Object.defineProperty，result2["get xxx"]是没用的！
-            //Object.defineProperty有一大堆默认配置坑，烦死了
-            Object.defineProperty(result2, "frequency", {
-                configurable: false,
-                enumerable: true,
-                get(){return (thisDN as ctransitiveDN).frequency;},
-                set(freq :number){
-                    if(typeof freq != "number") utils.generic.E("frequency", "number", freq);
-                    else (thisDN as ctransitiveDN).frequency = freq;
-                }
-            });
-            Object.defineProperty(result2, "value", {
-                configurable: false,
-                enumerable: true,
-                get(){return (thisDN as ctransitiveDN).value;}
-            });
-            result2.updateNow = function(){
-                //(thisDN as ctransitiveDN).update();
-            }
-            return result2 as ctDNOperations;
-        }
-        else return result2 as tDNOperations;
+    transDN(args :tDNcreateArgs | string) :void{
+
     }
-    exportDN(args :eDNcreateArgs | string) :eDNOperations{
-        const DNs = this.#DNs, sourceDNs = this.#sourceDNs, transDNs = this.#transDNs, exportDNs = this.#exportDNs,
-              sourceDN = this.sourceDN, transDN = this.transDN, exportDN = this.exportDN;
-        var thisDN :exportDN;
-        //创建节点
-        if(typeof args == "object"){
-            //create会审查参数
-            const result = localUtils.createDN.createEDN(args)!;
-            exportDNs.push(result);
-            DNs.push(result);
-            thisDN = result;
-        }
-        //查找节点
-        else{
-            for(let i = 0; i < exportDNs.length; i++) if(exportDNs[i].name === args) thisDN = exportDNs[i];
-            if(thisDN! === undefined) utils.generic.E("args", `e${s[1]}`, args, s[0]);
-        }
-        return{
-            connectFrom(target :string | prevDN) :anyDNOperations{
-                localUtils.dno.connectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target);
-                
-            },
-            disconnectFrom(target :string | prevDN) :anyDNOperations{
-                localUtils.dno.disconnectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target);
-                
-            },
-            existsPrev(target :string | prevDN) :boolean{return localUtils.dno.existsPrev([DNs, sourceDNs, transDNs, exportDNs], thisDN, target)}
-        }
+    exportDN(args :eDNcreateArgs | string) :void{
+
     }
-    #detectDN(node :Element) :void{
+    #detectDNfromHTML(node :Element) :void{
         if(node.textContent){
             const sDNm = node.textContent.match(/^__[^:]+__$/),
                   tDNm = node.textContent.match(/^--[^:]+--$/),
                   eDNm = node.textContent.match(/^::[^:]+::$/);
             //没有匹配到则为null，匹配到则[0]为::example::
-            if(eDNm) this.exportDN({
-                name: eDNm[0].substring(2, eDNm[0].length - 2),
-                methods: {}, //其实可以不用，utils那边做了兜底
-                export(data :any) :any{
-                    node.textContent = Object.prototype.toString.call((this as anyObject).value); //这里的this是精心设计的
-                }
-            });
-            /*else if(tDNm) this.transDN({
-
-            });
-            else if(sDNm) this.sourceDN({
-
-            });*/
+            if(eDNm){
+                
+            }
+            else if(tDNm){}
+            else if(sDNm){}
         }
         const attrs = node.attributes;
         //别写in，否则出一大堆方法

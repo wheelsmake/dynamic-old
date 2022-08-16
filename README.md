@@ -8,7 +8,11 @@
 
 ## 以数据为中心
 
-dynamic 中最重要的概念莫过于**数据节点**，这是它的核心功能。相比起 React 的偏向渲染功能并专门设计状态管理，dynamic 甚至做得比 Vue 的数据驱动视图更极端——dynamic 直接关注数据本身，并重视数据的流动。在这中间插入状态管理是轻而易举的。
+dynamic 中最重要的概念莫过于**数据节点**，这是它的核心功能。dynamic 直接关注数据本身，并重视数据的流动。
+
+## 无组件
+
+dynamic 中没有组件的概念，你可以把 dynamic 理解为基于字符串的模板引擎，但 dynamic 支持从数据节点输出 DOM，所以其实一个数据节点也可以看作是一个组件。
 
 ## 强接管 DOM
 
@@ -110,11 +114,11 @@ import Dynamic from "path/to/dynamic.ts";
 var dy = new Dynamic("#app");
 var myArray = ["a","b","c","d"];
 window.onload = ()=>{
-    dy.exportDN("today_s").methods({
+    dy.exportDN("today_s").setMethod({
         increase(){
             this.value++;
         }
-    });
+	});
 }
 ```
 
@@ -122,7 +126,7 @@ window.onload = ()=>{
 
 1. 这和写直接操作 DOM 的代码有什么区别？
 
-   - 最大的区别是：数据可以在 HTML 中被无限重用。如果需要一个只要设置一个源节点，并将其
+   - 最大的区别是：数据可以在 HTML 中被无限重用。
 
 2. 为什么要在 `window.onload` 后执行这些设置？
 
@@ -143,7 +147,7 @@ window.onload = ()=>{
 5. 如果直接在 `onclick` 属性上这样写，IDE 会报错
 
    - dynamic 拒绝 DSL，所以推荐这样写。其实 dynamic 也可以识别所有属性前面加上 `:` 的属性，如 `:id="::ex::"` 会将 `ex` 导出节点应用到 `id` 属性上。
-   - 需要注意的是加 `:` 属性的优先级**比没有加 `:` 属性的优先级高**。这是刻意的设计，可以用于很多先告诉浏览器属性，dynamic 再施工的场景。例如 `<div id="s1" :id="::ex::"></div>`，在带锚点 URL 访问（`http....#s1`）中可以生效。
+   - 需要注意的是加 `:` 属性的优先级**比没有加 `:` 属性的优先级高**。这是刻意的设计，可以用于一些有初始影响的属性，例如 `id` 属性：`<div id="s1" :id="::ex::"></div>`，在带锚点 URL 访问（`http....#s1`）中可以生效。
 
 6. 
 
