@@ -1,3 +1,2 @@
-export * as dno from "./dno";
-export * as createDN from "./createDN";
+export {};
 //# sourceMappingURL=index.d.ts.map
