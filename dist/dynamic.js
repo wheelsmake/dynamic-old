@@ -13,7 +13,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _utils_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/index */ "../utils/index.ts");
-/* harmony import */ var _utils_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/index */ "./src/utils/index.ts");
 var __classPrivateFieldSet = (undefined && undefined.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -25,347 +24,46 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Dynamic_instances, _Dynamic_rootNode, _Dynamic_sourceDNs, _Dynamic_transDNs, _Dynamic_exportDNs, _Dynamic_DNs, _Dynamic_detectDN;
-
+var _Dynamic_rootNode, _Dynamic_proxy, _Dynamic_data, _Dynamic_dataDesc;
 
 console.info(`dynamic(dnJS) ©LJM12914. https://github.com/wheelsmake/dynamic
 You are using the unminified build of dynamic. Make sure to use the minified build for production.`);
-const DEV = "DEV" in window && window.DEV === true;
-const s = [
-    "cannot find this datanode",
-    "DNcreateArgs | string",
-    "BLOCKED IN NON-DEV MODE"
-];
+const isDEV = "__dn_DEV__" in window && window.__dn_DEV__ === true;
 class Dynamic {
     constructor(rootNode) {
-        _Dynamic_instances.add(this);
         _Dynamic_rootNode.set(this, void 0);
-        _Dynamic_sourceDNs.set(this, []);
-        _Dynamic_transDNs.set(this, []);
-        _Dynamic_exportDNs.set(this, []);
-        _Dynamic_DNs.set(this, []);
+        _Dynamic_proxy.set(this, void 0);
+        _Dynamic_data.set(this, {});
+        _Dynamic_dataDesc.set(this, {});
         __classPrivateFieldSet(this, _Dynamic_rootNode, _utils_index__WEBPACK_IMPORTED_MODULE_0__.arguments.reduceToElement(rootNode), "f");
-        __classPrivateFieldGet(this, _Dynamic_instances, "m", _Dynamic_detectDN).call(this, __classPrivateFieldGet(this, _Dynamic_rootNode, "f"));
         console.info("creating new dynamic instance with rootNode", rootNode);
+        const data = __classPrivateFieldGet(this, _Dynamic_data, "f");
+        __classPrivateFieldSet(this, _Dynamic_proxy, new Proxy(__classPrivateFieldGet(this, _Dynamic_data, "f"), {
+            get(sharpData, property, proxy) {
+                console.log("get", property);
+            },
+            set(sharpData, property, newValue, proxy) {
+                var result;
+                console.log("set", property, newValue);
+                console.log(data === sharpData);
+                if (property in data) {
+                    return Reflect.set(data, property, newValue, proxy);
+                }
+                else {
+                    return Reflect.set(data, property, newValue, proxy);
+                }
+            },
+            deleteProperty(sharpData, property) {
+                return Reflect.deleteProperty(data, property);
+            }
+        }), "f");
     }
     get rootNode() { return __classPrivateFieldGet(this, _Dynamic_rootNode, "f"); }
-    __DEV__getPrivateFields__() {
-        if (DEV)
-            return {
-                rootNode: __classPrivateFieldGet(this, _Dynamic_rootNode, "f"),
-                sourceDNs: __classPrivateFieldGet(this, _Dynamic_sourceDNs, "f"),
-                transDNs: __classPrivateFieldGet(this, _Dynamic_transDNs, "f"),
-                exportDNs: __classPrivateFieldGet(this, _Dynamic_exportDNs, "f"),
-                DNs: __classPrivateFieldGet(this, _Dynamic_DNs, "f")
-            };
-        else
-            return s[2];
-    }
-    sourceDN(args) {
-        const DNs = __classPrivateFieldGet(this, _Dynamic_DNs, "f"), sourceDNs = __classPrivateFieldGet(this, _Dynamic_sourceDNs, "f"), transDNs = __classPrivateFieldGet(this, _Dynamic_transDNs, "f"), exportDNs = __classPrivateFieldGet(this, _Dynamic_exportDNs, "f");
-        var thisDN;
-        if (typeof args == "object") {
-            const result = _utils_index__WEBPACK_IMPORTED_MODULE_1__.createDN.createSDN(args);
-            sourceDNs.push(result);
-            DNs.push(result);
-            thisDN = result;
-        }
-        else {
-            for (let i = 0; i < sourceDNs.length; i++)
-                if (sourceDNs[i].name === args)
-                    thisDN = sourceDNs[i];
-            if (thisDN === undefined)
-                _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("args", `s${s[1]}`, args, s[0]);
-        }
-        return {
-            connectTo(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.connectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            disconnectTo(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.disconnectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            existsNext(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.existsNext([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            get frequency() { return thisDN.frequency; },
-            set frequency(freq) {
-                if (typeof freq != "number")
-                    _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("frequency", "number", freq);
-                else
-                    thisDN.frequency = freq;
-            },
-            get value() {
-                if (DEV)
-                    return thisDN.value;
-                else
-                    return s[2];
-            }
-        };
-    }
-    transDN(args) {
-        const DNs = __classPrivateFieldGet(this, _Dynamic_DNs, "f"), sourceDNs = __classPrivateFieldGet(this, _Dynamic_sourceDNs, "f"), transDNs = __classPrivateFieldGet(this, _Dynamic_transDNs, "f"), exportDNs = __classPrivateFieldGet(this, _Dynamic_exportDNs, "f");
-        var thisDN;
-        if (typeof args == "object") {
-            const result = _utils_index__WEBPACK_IMPORTED_MODULE_1__.createDN.createTDN(args);
-            transDNs.push(result);
-            DNs.push(result);
-            thisDN = result;
-        }
-        else {
-            for (let i = 0; i < transDNs.length; i++)
-                if (transDNs[i].name === args)
-                    thisDN = transDNs[i];
-            if (thisDN === undefined)
-                _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("args", `t${s[1]}`, args, s[0]);
-        }
-        thisDN = thisDN;
-        const result2 = {
-            connectTo(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.connectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            disconnectTo(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.disconnectTo([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            connectFrom(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.connectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            disconnectFrom(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.disconnectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            existsPrev(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.existsPrev([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            existsNext(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.existsNext([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); }
-        };
-        if ("frequency" in thisDN) {
-            Object.defineProperty(thisDN, "frequency", {
-                configurable: false,
-                enumerable: true,
-                get() { return thisDN.frequency; },
-                set(freq) {
-                    if (typeof freq != "number")
-                        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("frequency", "number", freq);
-                    else
-                        thisDN.frequency = freq;
-                }
-            });
-            Object.defineProperty(thisDN, "value", {
-                configurable: false,
-                enumerable: true,
-                get() { return thisDN.value; }
-            });
-            return result2;
-        }
-        else
-            return result2;
-    }
-    exportDN(args) {
-        const DNs = __classPrivateFieldGet(this, _Dynamic_DNs, "f"), sourceDNs = __classPrivateFieldGet(this, _Dynamic_sourceDNs, "f"), transDNs = __classPrivateFieldGet(this, _Dynamic_transDNs, "f"), exportDNs = __classPrivateFieldGet(this, _Dynamic_exportDNs, "f");
-        var thisDN;
-        if (typeof args == "object") {
-            const result = _utils_index__WEBPACK_IMPORTED_MODULE_1__.createDN.createEDN(args);
-            exportDNs.push(result);
-            DNs.push(result);
-            thisDN = result;
-        }
-        else {
-            for (let i = 0; i < exportDNs.length; i++)
-                if (exportDNs[i].name === args)
-                    thisDN = exportDNs[i];
-            if (thisDN === undefined)
-                _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("args", `e${s[1]}`, args, s[0]);
-        }
-        return {
-            connectFrom(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.connectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            disconnectFrom(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.disconnectFrom([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); },
-            existsPrev(target) { return _utils_index__WEBPACK_IMPORTED_MODULE_1__.dno.existsPrev([DNs, sourceDNs, transDNs, exportDNs], thisDN, target); }
-        };
-    }
+    get data() { return __classPrivateFieldGet(this, _Dynamic_proxy, "f"); }
 }
-_Dynamic_rootNode = new WeakMap(), _Dynamic_sourceDNs = new WeakMap(), _Dynamic_transDNs = new WeakMap(), _Dynamic_exportDNs = new WeakMap(), _Dynamic_DNs = new WeakMap(), _Dynamic_instances = new WeakSet(), _Dynamic_detectDN = function _Dynamic_detectDN(node) {
-    if (node.textContent) {
-        const sDNm = node.textContent.match(/^__[^:]+__$/), tDNm = node.textContent.match(/^--[^:]+--$/), eDNm = node.textContent.match(/^::[^:]+::$/);
-        if (eDNm)
-            this.exportDN({
-                name: eDNm[0].substring(2, eDNm[0].length - 2),
-                methods: {},
-                export(data) {
-                    node.textContent = Object.prototype.toString.call(this.value);
-                }
-            });
-    }
-    const attrs = node.attributes;
-    for (let i = 0; i < attrs.length; i++) {
-    }
-    for (let i = 0; i < node.childNodes.length; i++) {
-    }
-};
+_Dynamic_rootNode = new WeakMap(), _Dynamic_proxy = new WeakMap(), _Dynamic_data = new WeakMap(), _Dynamic_dataDesc = new WeakMap();
 _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.constantize(Dynamic);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Dynamic);
-
-
-/***/ }),
-
-/***/ "./src/utils/createDN.ts":
-/*!*******************************!*\
-  !*** ./src/utils/createDN.ts ***!
-  \*******************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "createEDN": () => (/* binding */ createEDN),
-/* harmony export */   "createSDN": () => (/* binding */ createSDN),
-/* harmony export */   "createTDN": () => (/* binding */ createTDN)
-/* harmony export */ });
-/* harmony import */ var _utils_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utils/index */ "../utils/index.ts");
-
-function createSDN(args) {
-    checkArgs("s", args);
-    return {
-        name: args.name,
-        methods: "methods" in args ? args.methods : {},
-        fetch: args.fetch,
-        value: undefined,
-        frequency: args.frequency,
-        nexts: []
-    };
-}
-function createTDN(args) {
-    checkArgs("t", args);
-    const result = {};
-    result.name = args.name;
-    result.methods = "methods" in args ? args.methods : {};
-    if ("frequency" in args)
-        result.frequency = args.frequency;
-    if ("get" in args)
-        result.get = args.get;
-    else
-        result.get = function () {
-            return this.value;
-        };
-    if ("set" in args)
-        result.set = args.set;
-    else
-        result.set = function (data) {
-            this.value = data;
-        };
-    result.prevs = [];
-    result.nexts = [];
-    return result;
-}
-function createEDN(args) {
-    checkArgs("e", args);
-    return {
-        name: args.name,
-        methods: "methods" in args ? args.methods : {},
-        export: args.export,
-        prevs: []
-    };
-}
-function checkArgs(type, args) {
-    const a = "args", b = "DNCreateArgs", c = " is invalid";
-    if (!("name" in args))
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E(a, b, args, `${a}.name${c}`);
-    else if ("methods" in args && typeof args.methods != "object")
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E(a, b, args, `${a}.methods${c}`);
-    else
-        switch (type) {
-            case "s":
-                if (!("fetch" in args) || typeof args.fetch != "function")
-                    _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E(a, `s${b}`, args, `${a}.fetch${c}`);
-                else if (!("frequency" in args) || typeof args.frequency != "number" || args.frequency < 0)
-                    _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E(a, `s${b}`, args, `${a}.frequency${c}`);
-                break;
-            case "t":
-                if ("frequency" in args && (typeof args.frequency != "number" || args.frequency < 0))
-                    _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E(a, `t${b}`, args, `${a}.frequency${c}`);
-                break;
-            case "e":
-                if (!("export" in args) || typeof args.export != "function")
-                    _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E(a, `e${b}`, args, `${a}.export${c}`);
-                break;
-            default:
-                _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.EE("?");
-                break;
-        }
-}
-
-
-/***/ }),
-
-/***/ "./src/utils/dno.ts":
-/*!**************************!*\
-  !*** ./src/utils/dno.ts ***!
-  \**************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "connectFrom": () => (/* binding */ connectFrom),
-/* harmony export */   "connectTo": () => (/* binding */ connectTo),
-/* harmony export */   "disconnectFrom": () => (/* binding */ disconnectFrom),
-/* harmony export */   "disconnectTo": () => (/* binding */ disconnectTo),
-/* harmony export */   "existsNext": () => (/* binding */ existsNext),
-/* harmony export */   "existsPrev": () => (/* binding */ existsPrev)
-/* harmony export */ });
-/* harmony import */ var _utils_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utils/index */ "../utils/index.ts");
-
-function connectTo(data, objective, target) {
-    const targetDN = processTarget(data, target);
-    if (data[1].indexOf(targetDN) != -1)
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.EE("Source datanodes cannot be connected.");
-    else if (objective.nexts.indexOf(targetDN) != -1)
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("target", undefined, target, "duplicated next nodes");
-    else {
-        objective.nexts.push(targetDN);
-        targetDN.prevs.push(objective);
-    }
-}
-function disconnectTo(data, objective, target) {
-    const targetDN = processTarget(data, target);
-    if (data[1].indexOf(targetDN) != -1)
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.EE("Source datanodes cannot be connected, thus wont be disconnected.");
-    else if (objective.nexts.indexOf(targetDN) == -1)
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("target", undefined, target, "cannot find it as next nodes");
-    else {
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.precisePop(targetDN, objective.nexts);
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.precisePop(objective, targetDN.prevs);
-    }
-}
-function connectFrom(data, objective, target) {
-}
-function disconnectFrom(data, objective, target) {
-}
-function existsPrev(data, objective, target) {
-    const targetDN = processTarget(data, target);
-    return false;
-}
-function existsNext(data, objective, target) {
-    const targetDN = processTarget(data, target);
-    return false;
-}
-function processTarget(data, target) {
-    if (typeof target == "object") {
-        if (data[0].indexOf(target) != -1)
-            return target;
-        else
-            _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("target", undefined, target, "cannot find this datanode");
-    }
-    else if (typeof target == "string") {
-        for (let i = 0; i < data[0].length; i++)
-            if (data[0][i].name === target)
-                return data[0][i];
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("target", undefined, target, "cannot find this datanode");
-    }
-    else
-        _utils_index__WEBPACK_IMPORTED_MODULE_0__.generic.E("target", "string | nextDN", target);
-}
-
-
-/***/ }),
-
-/***/ "./src/utils/index.ts":
-/*!****************************!*\
-  !*** ./src/utils/index.ts ***!
-  \****************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "createDN": () => (/* reexport module object */ _createDN__WEBPACK_IMPORTED_MODULE_1__),
-/* harmony export */   "dno": () => (/* reexport module object */ _dno__WEBPACK_IMPORTED_MODULE_0__)
-/* harmony export */ });
-/* harmony import */ var _dno__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dno */ "./src/utils/dno.ts");
-/* harmony import */ var _createDN__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./createDN */ "./src/utils/createDN.ts");
-
-
-
-
 
 
 /***/ }),
@@ -563,7 +261,7 @@ function E(argument, type, value, reason) {
     if (argument === undefined)
         throw new Error("An error occured.");
     else {
-        console.info("ERROR INFO: argument", argument, ",type", type, ",value", value, ",reason", reason);
+        console.error("ERROR INFO: argument", argument, ",type", type, ",value", value, ",reason", reason);
         throw new Error(`Argument '${argument}' ${type ? `should be a(an) ${type}` : "is invalid"}${reason ? `, reason: ${reason}` : ""}${value ? `, got ${value}` : ""}.`);
     }
 }

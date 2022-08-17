@@ -8,3 +8,8 @@ type SSkvObject = Record<string, string>;
 type functionObject = Record<string, Function>;
 
 type Elementy = Element | string;
+
+type depenObject = Record<string, {
+    shouldUpdate :string[],
+    shouldExport :Function[]
+}>;

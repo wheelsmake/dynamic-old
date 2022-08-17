@@ -1,4 +1,4 @@
-﻿var dy = new Dynamic("#app");
+﻿/*var dy = new Dynamic("#app");
 dy.sourceDN({
     name: "aa",
     fetch(){
@@ -12,4 +12,5 @@ dy.transDN({
     update(data){
         return data.aa + data.ad;
     }
-}).connectTo("ab"); //链式调用
+}).connectTo("ab"); //链式调用*/
+var dy = new Dynamic("#app");

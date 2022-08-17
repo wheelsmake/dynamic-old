@@ -8,8 +8,8 @@
     <body>
         <div id="root">
             <div id="header">
-                <button id="add" :onclick="--todoStore--update">添加待办事项</button>&emsp;
-                <input id="content" :value="__content__" type="text" placeholder="输入待办事项..." autofocus />
+                <button id="add" onclick="'todoStore.update'">添加待办事项</button>&emsp;
+                <input id="content" :value="content" type="text" placeholder="输入待办事项..." autofocus />
             </div>
             <div id="field">::export::</div>
         </div>
